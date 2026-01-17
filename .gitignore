@@ -16,5 +16,6 @@ logs/*
 .chromadb
 .agent
 alembic/*
+Backend/scripts/*
 
 

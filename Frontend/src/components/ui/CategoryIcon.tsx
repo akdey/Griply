@@ -52,7 +52,8 @@ import {
     Bell,
     Book,
     Briefcase,
-    HelpCircle
+    HelpCircle,
+    Sparkles
 } from 'lucide-react';
 
 export const ICON_MAP: Record<string, LucideIcon> = {
@@ -123,6 +124,8 @@ export const ICON_MAP: Record<string, LucideIcon> = {
     'Bell': Bell,
     'Book': Book,
     'Briefcase': Briefcase,
+    'Sparkles': Sparkles,
+    'HelpCircle': HelpCircle,
 };
 
 export const CATEGORIZED_LUCIDE_ICONS = [
