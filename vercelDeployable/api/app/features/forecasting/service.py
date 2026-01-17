@@ -1,5 +1,4 @@
 import logging
-import pandas as pd
 from decimal import Decimal
 from typing import List
 import json
@@ -8,8 +7,10 @@ import httpx
 from app.core.config import get_settings
 
 # Lazy import Prophet to avoid crashes if not installed/compiled
+# Prophet is used only if manually installed (not available on Vercel)
 try:
     from prophet import Prophet
+    import pandas as pd
     PROPHET_AVAILABLE = True
 except ImportError:
     PROPHET_AVAILABLE = False
