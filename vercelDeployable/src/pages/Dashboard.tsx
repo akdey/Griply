@@ -5,7 +5,6 @@ import { useAuthStore } from '../lib/store';
 import {
     ArrowUpRight,
     ArrowDownRight,
-    TrendingUp,
     Banknote,
     Receipt,
     ChevronRight,
@@ -22,7 +21,6 @@ import { motion } from 'framer-motion';
 
 const Dashboard: React.FC = () => {
     const navigate = useNavigate();
-    const user = useAuthStore((state) => state.user);
     const { data: summary, isLoading: isSummaryLoading } = useMonthlySummary();
     const { data: safeToSpend, isLoading: isSafeLoading } = useSafeToSpend(0.10);
     const { data: forecast, isLoading: isForecastLoading } = useForecast();

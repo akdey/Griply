@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTransactions } from '../features/transactions/hooks';
-import { Card } from '../components/ui/Card';
 import {
     Receipt,
     ChevronLeft,

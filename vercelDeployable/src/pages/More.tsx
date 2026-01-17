@@ -8,7 +8,6 @@ import {
     Smartphone,
     Calendar,
     Filter,
-    ArrowLeft,
     Plus,
     Save,
     Trash2,
@@ -19,6 +18,7 @@ import {
 import { useAuthStore } from '../lib/store';
 import { Drawer } from '../components/ui/Drawer';
 import { useCategories } from '../features/transactions/categoryHooks';
+import type { Category, SubCategory } from '../features/transactions/categoryHooks';
 import { CategoryIcon } from '../components/ui/CategoryIcon';
 import { Button } from '../components/ui/Button';
 import { IconSelector } from '../components/ui/IconSelector';
@@ -195,13 +195,13 @@ const More: React.FC = () => {
                     {isAddMode === 'NONE' ? (
                         <div className="flex flex-col h-full">
                             <div className="flex-1 overflow-y-auto space-y-6 pt-2 pb-14 no-scrollbar px-1">
-                                {categories?.map(cat => (
+                                {categories?.map((cat: Category) => (
                                     <div key={cat.id} className="space-y-4">
                                         <div className="flex items-center justify-between p-3 rounded-[1.5rem] hover:bg-white/[0.03] transition-colors border border-transparent hover:border-white/[0.05]">
                                             <div className="flex items-center gap-4">
                                                 <div
                                                     className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner border border-white/[0.08]"
-                                                    style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
+                                                    style={{ backgroundColor: cat.color ? `${cat.color}15` : 'rgba(255,255,255,0.03)', color: cat.color || '#fff' }}
                                                 >
                                                     <CategoryIcon name={cat.icon} size={22} />
                                                 </div>
@@ -228,7 +228,7 @@ const More: React.FC = () => {
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-1 gap-1.5 pl-12 border-l border-white/[0.05] ml-6">
-                                            {cat.sub_categories.map(sub => (
+                                            {cat.sub_categories.map((sub: SubCategory) => (
                                                 <div key={sub.id} className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.015] border border-white/[0.03] group/sub">
                                                     <div className="flex items-center gap-3">
                                                         <CategoryIcon name={sub.icon} size={16} color={sub.color || cat.color} />

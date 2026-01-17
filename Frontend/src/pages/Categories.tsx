@@ -9,11 +9,11 @@ import {
     ChevronRight,
     X,
     FolderPlus,
-    Save,
-    Search
+    Save
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useCategories } from '../features/transactions/categoryHooks';
+import type { Category, SubCategory } from '../features/transactions/categoryHooks';
 import { Button } from '../components/ui/Button';
 import { Drawer } from '../components/ui/Drawer';
 import { IconSelector } from '../components/ui/IconSelector';
@@ -118,13 +118,16 @@ const Categories: React.FC = () => {
                         <div className="w-8 h-8 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
                     </div>
                 ) : (
-                    categories?.map(category => (
+                    categories?.map((category: Category) => (
                         <div key={category.id} className="space-y-3">
                             <div className="flex items-center justify-between group">
                                 <div className="flex items-center gap-4">
                                     <div
                                         className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border border-white/5 shadow-inner"
-                                        style={{ backgroundColor: `${category.color}20` || 'rgba(255,255,255,0.05)', color: category.color }}
+                                        style={{
+                                            backgroundColor: category.color ? `${category.color}20` : 'rgba(255,255,255,0.05)',
+                                            color: category.color || '#fff'
+                                        }}
                                     >
                                         {category.icon || '⚪'}
                                     </div>
@@ -159,12 +162,12 @@ const Categories: React.FC = () => {
                             </div>
 
                             <div className="grid grid-cols-1 gap-2 pl-12 border-l border-white/5 ml-6">
-                                {category.sub_categories.map(sub => (
+                                {category.sub_categories.map((sub: SubCategory) => (
                                     <div key={sub.id} className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group/sub">
                                         <div className="flex items-center gap-3">
                                             <span
                                                 className="text-lg"
-                                                style={{ color: sub.color }}
+                                                style={{ color: sub.color || '#fff' }}
                                             >
                                                 {sub.icon || '🔹'}
                                             </span>
@@ -191,6 +194,7 @@ const Categories: React.FC = () => {
                 isOpen={isAddCategoryOpen}
                 onClose={() => setAddCategoryOpen(false)}
                 height="h-[92vh]"
+                title="New Category"
             >
                 <div className="flex flex-col h-full bg-[#050505]">
                     {/* Header like image 2 */}
@@ -265,6 +269,7 @@ const Categories: React.FC = () => {
                 isOpen={isAddSubCategoryOpen}
                 onClose={() => setAddSubCategoryOpen(false)}
                 height="h-[92vh]"
+                title="New Sub-Category"
             >
                 <div className="flex flex-col h-full bg-[#050505]">
                     <div className="flex items-center justify-between p-4 mb-4">
@@ -330,7 +335,7 @@ const Categories: React.FC = () => {
                     </div>
                 </div>
             </Drawer>
-        </div>
+        </div >
     );
 };
 
