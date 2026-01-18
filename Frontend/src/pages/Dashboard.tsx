@@ -301,7 +301,7 @@ const Dashboard: React.FC = () => {
 
                             <div className="space-y-4">
                                 <h4 className="text-[10px] font-black text-gray-600 uppercase tracking-[3px]">Projected Categories</h4>
-                                {forecast?.breakdown && forecast.breakdown.length > 0 ? (
+                                {forecast?.breakdown && Array.isArray(forecast.breakdown) && forecast.breakdown.length > 0 ? (
                                     forecast.breakdown.map((item: any, idx: number) => (
                                         <div key={idx} className="flex items-start gap-4 p-4 rounded-3xl bg-white/[0.02] border border-white/[0.05]">
                                             <div className="w-10 h-10 rounded-2xl bg-white/[0.05] flex items-center justify-center text-gray-400 shrink-0">
