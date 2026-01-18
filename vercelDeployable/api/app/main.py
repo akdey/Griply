@@ -80,4 +80,4 @@ app.include_router(goals_router, prefix=f"{settings.API_V1_STR}/goals", tags=["g
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Griply - The financial diet that sticks."}
+    return {"message": "Welcome to Grip - The financial diet that sticks."}

@@ -69,9 +69,9 @@ async def webhook_ingress(
     background_tasks: BackgroundTasks, 
     service: Annotated[SyncService, Depends()],
     db: Annotated[AsyncSession, Depends(get_db)],
-    x_griply_secret: Annotated[str | None, Header()] = None
+    x_grip_secret: Annotated[str | None, Header()] = None
 ):
-    if x_griply_secret != settings.GRIPLY_SECRET:
+    if x_grip_secret != settings.GRIP_SECRET:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     email = payload.get("emailAddress")

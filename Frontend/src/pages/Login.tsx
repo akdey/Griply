@@ -49,7 +49,7 @@ const Login: React.FC = () => {
             <div className="w-full max-w-md space-y-8 animate-enter">
                 <div className="text-center">
                     <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-500 mb-2">
-                        Griply
+                        Grip
                     </h1>
                     <p className="text-gray-400 text-sm italic">The financial diet that sticks.</p>
                 </div>

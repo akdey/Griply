@@ -28,7 +28,7 @@ export const Sidebar: React.FC = () => {
         <aside className="hidden md:flex flex-col w-72 h-screen fixed left-0 top-0 border-r border-white/5 bg-slate-900/30 backdrop-blur-xl">
             <div className="p-8">
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-400 tracking-tighter">
-                    Griply
+                    Grip
                 </h1>
                 <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-widest font-semibold opacity-70">
                     The financial diet that sticks

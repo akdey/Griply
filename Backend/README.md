@@ -1,10 +1,10 @@
-# Griply: The financial diet that sticks.
+# Grip: The financial diet that sticks.
 
-**Griply** is a privacy-first, AI-powered financial companion designed to convert raw banking communications into structured, actionable insights without compromising user privacy.
+**Grip** is a privacy-first, AI-powered financial companion designed to convert raw banking communications into structured, actionable insights without compromising user privacy.
 
 ## 🚀 How It Works
 
-Griply acts as a central hub for your financial life, utilizing a multi-stage pipeline to process data:
+Grip acts as a central hub for your financial life, utilizing a multi-stage pipeline to process data:
 
 1.  **Ingestion**: Receives banking emails via three methods:
     *   **Direct Push**: A Google Apps Script pings the backend with raw email content.
@@ -32,7 +32,7 @@ Griply acts as a central hub for your financial life, utilizing a multi-stage pi
 ### 🔄 Multi-Source Sync
 - **Google Apps Script Webhook**: Secure production-ready endpoint for real-time transaction ingestion.
 - **Legacy OAuth Sync**: Fallback method for manual history fetching using Google API Client.
-- **X-PFIE-SECRET**: Header-based authentication for secure webhook communication.
+- **X-GRIP-SECRET**: Header-based authentication for secure webhook communication.
 
 ### 📉 Predictive Analytics & Forecasting
 - **Meta Prophet Integration**: Uses high-performance time-series forecasting to predict your financial burden for the next 30 days.
@@ -82,7 +82,7 @@ GOOGLE_CLIENT_ID="your-google-id"
 GOOGLE_CLIENT_SECRET="your-google-secret"
 
 # Secondary Ingress
-PFIE_SECRET="your-custom-webhook-secret"
+GRIP_SECRET="your-custom-webhook-secret"
 ```
 
 ### Installation & Execution

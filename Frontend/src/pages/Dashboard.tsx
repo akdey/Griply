@@ -77,7 +77,7 @@ const Dashboard: React.FC = () => {
             <header className="px-6 py-8 flex items-center justify-between relative z-50">
                 <div className="flex flex-col">
                     <h1 className="text-3xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-white/40">
-                        Griply
+                        Grip
                     </h1>
                     <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[3px] mt-1">Intelligence Hub</p>
 

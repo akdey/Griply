@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Griply"
+    PROJECT_NAME: str = "Grip"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = "local"
     
@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "SECRET_KEY"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 3  # 3 days
-    GRIPLY_SECRET: str = "GriplySecret"
+    GRIP_SECRET: str = "GripSecret"
     
     EXCEPTION_ROUTES: list[str] = [
         "/docs", 

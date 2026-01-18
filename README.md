@@ -1,10 +1,10 @@
-# Griply: The financial diet that sticks.
+# Grip: The financial diet that sticks.
 
-**Griply** is a privacy-first, AI-powered financial companion designed to convert raw banking communications into structured, actionable insights without compromising user privacy. With **Hybrid Manual-First** capabilities, credit card lifecycle intelligence, and predictive analytics.
+**Grip** is a privacy-first, AI-powered financial companion designed to convert raw banking communications into structured, actionable insights without compromising user privacy. With **Hybrid Manual-First** capabilities, credit card lifecycle intelligence, and predictive analytics.
 
 ## 🚀 How It Works
 
-Griply acts as a central hub for your financial life, utilizing a multi-stage pipeline to process data:
+Grip acts as a central hub for your financial life, utilizing a multi-stage pipeline to process data:
 
 1.  **Ingestion**: Receives banking emails via three methods:
     *   **Direct Push**: A Google Apps Script pings the backend with raw email content.
@@ -20,7 +20,7 @@ Griply acts as a central hub for your financial life, utilizing a multi-stage pi
 5.  **Memory (Merchant Mapping)**: When you manually verify a transaction, the engine creates a "Merchant Mapping." Future transactions from that same merchant are automatically categorized based on your past preferences.
 6.  **Insights**: A dedicated dashboard provides real-time visibility into your Liquidity and Investment portfolio.
 7.  **Predictive Forecasting**: Leverages a **Hybrid AI Engine** (Meta Prophet locally, or Groq Llama 3 on Vercel) to analyze historical spending patterns and category trends. It predicts your **month-end burden** (remaining expenses for the current month) to calculate a dynamic "Safe-to-Spend" margin.
-8.  **PWA Ready**: Install Griply on your mobile device as a Progressive Web App for a native-like experience with offline capabilities.
+8.  **PWA Ready**: Install Grip on your mobile device as a Progressive Web App for a native-like experience with offline capabilities.
 ---
 
 ## ✨ Core Functionalities
@@ -48,7 +48,7 @@ Griply acts as a central hub for your financial life, utilizing a multi-stage pi
 ### 🔄 Multi-Source Sync
 - **Google Apps Script Webhook**: Secure production-ready endpoint for real-time transaction ingestion.
 - **Legacy OAuth Sync**: Fallback method for manual history fetching using Google API Client.
-- **X-GRIPLY-SECRET**: Header-based authentication for secure webhook communication.
+- **X-GRIP-SECRET**: Header-based authentication for secure webhook communication.
 
 ### 📉 Predictive Analytics & Hybrid Forecasting
 - **Hybrid AI Engine**: 
@@ -64,6 +64,7 @@ Griply acts as a central hub for your financial life, utilizing a multi-stage pi
 - **Real-Time Calculation**: `Safe-to-Spend = Balance - FrozenFunds - Buffer`
 - **Frozen Funds Breakdown**: See exactly what's locked (unpaid bills, projected surety, unbilled CC).
 - **Configurable Buffer**: Set your own safety buffer percentage (default 10%).
+- **Visual Health Indicators**: Intuitive color-coded states (Critical, Warning, Healthy) with negative balance alerts.
 - **Smart Recommendations**: Get actionable advice based on your spending capacity.
 
 ### 🛡️ Privacy & Security
@@ -86,6 +87,7 @@ Griply acts as a central hub for your financial life, utilizing a multi-stage pi
 - **Forecasting**: Meta Prophet
 - **Hosting**: Vercel ready
 - **Package Management**: uv
+- **Frontend**: React 19, Vite, TailwindCSS 4, Zustand, Recharts
 
 ---
 
@@ -114,7 +116,7 @@ GOOGLE_CLIENT_SECRET="your-google-secret"
 USE_AI_FORECASTING="True" # Required for both Prophet and Groq-based forecasting
 
 # Secondary Ingress
-GRIPLY_SECRET="your-custom-webhook-secret"
+GRIP_SECRET="your-custom-webhook-secret"
 ```
 
 ### Installation & Execution
@@ -129,17 +131,25 @@ GRIPLY_SECRET="your-custom-webhook-secret"
     alembic upgrade head
     ```
 
-3.  **Seed the database** (Optional - creates amit@griply.com/admin and default categories):
+3.  **Seed the database** (Optional - creates amit@grip.com/admin and default categories):
     ```bash
     uv run scripts/seed_db.py
     ```
 
-4.  **Run the application**:
+4.  **Run the Backend**:
     ```bash
     uv run main.py
     ```
 
-4.  **Deploy to Vercel**:
+5.  **Run the Frontend**:
+    Open a new terminal:
+    ```bash
+    cd Frontend
+    npm install
+    npm run dev
+    ```
+
+6.  **Deploy to Vercel**:
     ```bash
     vercel --prod
     ```
