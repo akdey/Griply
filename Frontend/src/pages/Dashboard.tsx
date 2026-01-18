@@ -206,7 +206,7 @@ const Dashboard: React.FC = () => {
                     <div className="flex items-center justify-between px-2">
                         <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[4px]">Frozen Allocation</h3>
                         <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/10">
-                            {formatCurrency(Number(safeToSpend?.frozen_funds.total_frozen) || 0)}
+                            {formatCurrency(Number(safeToSpend?.frozen_funds?.total_frozen) || 0)}
                         </span>
                     </div>
 
@@ -222,8 +222,8 @@ const Dashboard: React.FC = () => {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="font-black text-white text-sm tracking-tighter">{formatCurrency(Number(safeToSpend?.frozen_funds.unpaid_bills) || 0)}</p>
-                                <p className="text-[7px] text-gray-700 font-bold uppercase tracking-wider mt-0.5">Projected: {formatCurrency(Number(safeToSpend?.frozen_funds.projected_surety) || 0)}</p>
+                                <p className="font-black text-white text-sm tracking-tighter">{formatCurrency(Number(safeToSpend?.frozen_funds?.unpaid_bills) || 0)}</p>
+                                <p className="text-[7px] text-gray-700 font-bold uppercase tracking-wider mt-0.5">Projected: {formatCurrency(Number(safeToSpend?.frozen_funds?.projected_surety) || 0)}</p>
                             </div>
                         </div>
 
@@ -238,7 +238,7 @@ const Dashboard: React.FC = () => {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="font-black text-white text-sm tracking-tighter">{formatCurrency(Number(safeToSpend?.frozen_funds.unbilled_cc) || 0)}</p>
+                                <p className="font-black text-white text-sm tracking-tighter">{formatCurrency(Number(safeToSpend?.frozen_funds?.unbilled_cc) || 0)}</p>
                                 <p className="text-[7px] text-gray-700 font-bold uppercase tracking-wider mt-0.5">Settlement Limit</p>
                             </div>
                         </div>
