@@ -80,14 +80,20 @@ const RecentActivity: React.FC<RecentActivityProps> = memo(({ transactions, form
             </div>
 
             <div className="space-y-3">
-                {transactions?.map((t) => (
-                    <RecentActivityItem
-                        key={t.id}
-                        t={t}
-                        formatCurrency={formatCurrency}
-                        onClick={(id) => navigate(`/transactions/${id}`)}
-                    />
-                ))}
+                {Array.isArray(transactions) && transactions.length > 0 ? (
+                    transactions.map((t) => (
+                        <RecentActivityItem
+                            key={t.id}
+                            t={t}
+                            formatCurrency={formatCurrency}
+                            onClick={(id) => navigate(`/transactions/${id}`)}
+                        />
+                    ))
+                ) : (
+                    <div className="p-8 text-center text-gray-500 text-xs">
+                        No recent activity found.
+                    </div>
+                )}
             </div>
         </div>
     );
