@@ -45,7 +45,7 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-[#0f172a]">
+        <div className="min-h-screen flex items-center justify-center p-4">
             <div className="w-full max-w-md space-y-8 animate-enter">
                 <div className="text-center">
                     <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-500 mb-2">
