@@ -6,7 +6,7 @@ import { api } from '../lib/api';
 import { useCreditCards } from '../features/credit-cards/hooks';
 import { useCategories } from '../features/transactions/categoryHooks';
 import type { TransactionType } from '../features/transactions/categoryHooks';
-import { useTransaction } from '../features/transactions/hooks';
+import { useTransaction, useVerifyTransaction } from '../features/transactions/hooks';
 import {
     ArrowLeft,
     Calendar,
@@ -41,6 +41,7 @@ const AddEntry: React.FC = () => {
     const { data: creditCards } = useCreditCards();
     const { data: categories, isLoading: isCategoriesLoading } = useCategories();
     const { data: existingTxn, isLoading: isTxnLoading } = useTransaction(id);
+    const verifyMutation = useVerifyTransaction();
 
     const [type, setType] = useState<TransactionType>('EXPENSE');
 
@@ -213,8 +214,37 @@ const AddEntry: React.FC = () => {
                     <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-gray-400 active:scale-90 transition-all">
                         <ArrowLeft size={16} />
                     </button>
-                    <h1 className="text-sm font-black tracking-tight uppercase">{id ? 'Edit Entry' : 'New Entry'}</h1>
+                    <h1 className="text-sm font-black tracking-tight uppercase">
+                        {existingTxn?.status === 'PENDING' ? 'Review Transaction' : (id ? 'Edit Entry' : 'New Entry')}
+                    </h1>
                 </header>
+
+                {existingTxn?.status === 'PENDING' && (
+                    <div className="bg-amber-500/10 border-b border-amber-500/20 px-5 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Sparkles size={16} className="text-amber-500" />
+                            <span className="text-[10px] font-black text-amber-500/80 uppercase tracking-widest">Action Required: Verify Intel</span>
+                        </div>
+                        <button
+                            onClick={() => {
+                                if (window.confirm('Mark this transaction as incorrect and remove it?')) {
+                                    verifyMutation.mutate({
+                                        id: id!,
+                                        data: {
+                                            category: category || 'Uncategorized',
+                                            sub_category: subCategory || 'Uncategorized',
+                                            merchant_name: merchantName,
+                                            approved: false
+                                        }
+                                    }, { onSuccess: () => navigate(-1) });
+                                }
+                            }}
+                            className="text-[9px] font-black text-rose-500 uppercase tracking-widest px-3 py-1.5 rounded-lg border border-rose-500/20"
+                        >
+                            Reject
+                        </button>
+                    </div>
+                )}
 
                 <div className="flex-1 space-y-6 animate-enter p-5">
                     {/* Magnitude & Mode */}
@@ -476,21 +506,40 @@ const AddEntry: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Save Button */}
-                <div className="fixed bottom-6 right-6 z-[60]">
-                    <button
-                        onClick={() => mutation.mutate()}
-                        disabled={mutation.isPending || !amount || !category}
-                        className={`
-                            w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-2xl shadow-indigo-500/20 active:scale-95 transition-all
-                            ${mutation.isPending || !amount || !category ? 'opacity-20 cursor-not-allowed scale-90' : 'hover:scale-110 active:rotate-6'}
-                        `}
-                    >
-                        <Save size={24} strokeWidth={2.5} />
-                        {mutation.isPending && (
-                            <div className="absolute inset-0 border-4 border-black/20 border-t-black rounded-full animate-spin" />
-                        )}
-                    </button>
+                {/* Action Button */}
+                <div className="fixed bottom-6 right-6 z-[60] flex items-center gap-3">
+                    {existingTxn?.status === 'PENDING' ? (
+                        <button
+                            onClick={() => verifyMutation.mutate({
+                                id: id!,
+                                data: {
+                                    category: category || 'Uncategorized',
+                                    sub_category: subCategory || 'Uncategorized',
+                                    merchant_name: merchantName,
+                                    approved: true
+                                }
+                            }, { onSuccess: () => navigate(-1) })}
+                            disabled={verifyMutation.isPending || !amount || !category}
+                            className={`
+                                h-14 px-8 rounded-full bg-white text-black flex items-center justify-center gap-3 shadow-2xl active:scale-95 transition-all
+                                ${verifyMutation.isPending || !amount || !category ? 'opacity-20' : 'hover:scale-105'}
+                            `}
+                        >
+                            <span className="text-xs font-black uppercase tracking-widest">Approve</span>
+                            <Check size={20} strokeWidth={3} />
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => mutation.mutate()}
+                            disabled={mutation.isPending || !amount || !category}
+                            className={`
+                                w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-2xl shadow-indigo-500/20 active:scale-95 transition-all
+                                ${mutation.isPending || !amount || !category ? 'opacity-20 cursor-not-allowed scale-90' : 'hover:scale-110 active:rotate-6'}
+                            `}
+                        >
+                            <Save size={24} strokeWidth={2.5} />
+                        </button>
+                    )}
                 </div>
 
                 <Drawer

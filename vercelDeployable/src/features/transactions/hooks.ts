@@ -75,6 +75,22 @@ export const useToggleSettledStatus = () => {
     });
 };
 
+export const useVerifyTransaction = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ id, data }: { id: string, data: { category: string, sub_category: string, merchant_name: string, approved: boolean } }) => {
+            const { data: response } = await api.patch<Transaction>(`/transactions/${id}/verify`, data);
+            return response;
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            queryClient.invalidateQueries({ queryKey: ['transaction', variables.id] });
+            queryClient.invalidateQueries({ queryKey: ['safe-to-spend'] });
+            queryClient.invalidateQueries({ queryKey: ['monthly-summary'] });
+        },
+    });
+};
+
 export const useTransaction = (id?: string) => {
     return useQuery({
         queryKey: ['transaction', id],
