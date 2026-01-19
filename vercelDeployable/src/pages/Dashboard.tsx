@@ -74,12 +74,12 @@ const Dashboard: React.FC = () => {
     return (
         <div className="text-white pb-24 overflow-x-hidden relative">
             {/* Liquid Header */}
-            <header className="px-5 pt-safe pt-6 pb-4 flex items-center justify-between relative z-50">
+            <header className="px-5 pt-safe pt-10 pb-4 flex items-center justify-between relative z-50">
                 <div className="flex flex-col">
                     <h1 className="text-3xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-400">
-                        Grip
+                        {import.meta.env.VITE_APP_NAME || 'Grip'}
                     </h1>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[3px] mt-1">Intelligence Hub</p>
+                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-[3px] mt-1">{import.meta.env.VITE_APP_TAGLINE || 'Money that minds itself.'}</p>
 
                     {/* Scope Selector */}
                     <div className="relative mt-6">
@@ -228,19 +228,34 @@ const Dashboard: React.FC = () => {
                     const safe = Number(safeToSpend?.safe_to_spend || 0);
                     const balance = Number(safeToSpend?.current_balance || 0);
 
-                    // 4-Stage Status System
-                    // Stage 1: Negative (deep red with white/red text)
-                    // Stage 2: Critical Low < ₹5000 (red)
-                    // Stage 3: Warning ₹5000-₹15000 (amber)
-                    // Stage 4: Healthy > ₹15000 (blue)
+                    // Status determination based on financial state
+                    // Determine user state from recommendation message
+                    const isNewUser = safeToSpend?.recommendation?.includes('Welcome');
+                    const isNegativeBalance = balance < 0;
+                    const isZeroBalance = balance === 0 && !isNewUser;
+
                     let status: 'negative' | 'critical' | 'warning' | 'success';
-                    if (safe < 0) {
+
+                    if (isNewUser) {
+                        // New user - neutral/welcoming state
+                        status = 'success';
+                    } else if (isNegativeBalance) {
+                        // Negative balance - critical red
                         status = 'negative';
+                    } else if (isZeroBalance) {
+                        // Existing user with zero balance - warning
+                        status = 'warning';
+                    } else if (safe === 0) {
+                        // Overextended (frozen + buffer > balance) - critical
+                        status = 'critical';
                     } else if (safe < 1000) {
+                        // Very low capacity - critical
                         status = 'critical';
                     } else if (safe < 3000) {
+                        // Low capacity - warning
                         status = 'warning';
                     } else {
+                        // Healthy - success
                         status = 'success';
                     }
 
@@ -395,22 +410,29 @@ const Dashboard: React.FC = () => {
                 {/* Forecast Card - New AI Feature */}
                 <div
                     onClick={() => setShowForecastDetails(true)}
-                    className="bg-gradient-to-r from-cyan-600/10 via-purple-600/10 to-transparent border border-white/[0.05] p-6 rounded-[2.5rem] relative overflow-hidden group cursor-pointer active:scale-95 transition-all"
+                    className={`bg-gradient-to-r ${forecast?.confidence === 'low' ? 'from-amber-600/10 via-orange-600/10' : 'from-cyan-600/10 via-purple-600/10'} to-transparent border border-white/[0.05] p-6 rounded-[2.5rem] relative overflow-hidden group cursor-pointer active:scale-95 transition-all`}
                 >
                     <div className="absolute right-6 top-6 animate-pulse text-cyan-400/20">
                         <Sparkles size={40} />
                     </div>
                     <div className="relative z-10 flex flex-col gap-4">
                         <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-cyan-400/10 flex items-center justify-center text-cyan-400">
+                            <div className={`w-6 h-6 rounded-full ${forecast?.confidence === 'low' ? 'bg-amber-400/10 text-amber-400' : 'bg-cyan-400/10 text-cyan-400'} flex items-center justify-center`}>
                                 <Activity size={14} />
                             </div>
                             <span className="text-[9px] font-black uppercase tracking-[3px] text-white/40">AI Forecast (30d)</span>
+                            {forecast?.confidence === 'low' && (
+                                <span className="text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                    ⚠ Low Data
+                                </span>
+                            )}
                         </div>
                         <div>
                             <p className="text-2xl font-black text-white tracking-tighter">{formatCurrency(forecast?.predicted_burden_30d || 0)}</p>
                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Predicted Burden • {forecast?.time_frame}</p>
-                            <p className="text-[10px] text-cyan-200/60 font-medium leading-tight mt-3 max-w-[260px]">{forecast?.description}</p>
+                            <p className={`text-[10px] font-medium leading-tight mt-3 max-w-[260px] ${forecast?.confidence === 'low' ? 'text-amber-200/60' : 'text-cyan-200/60'}`}>
+                                {forecast?.description}
+                            </p>
                         </div>
                         <div className="flex items-center gap-2 mt-2 opacity-60 group-hover:opacity-100 transition-opacity">
                             <span className="text-[8px] font-bold text-cyan-400 uppercase tracking-widest">Tap for breakdown</span>

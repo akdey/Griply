@@ -14,5 +14,8 @@ class User(Base):
     gmail_credentials: Mapped[dict] = mapped_column(JSON, nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     
+    verification_code: Mapped[str] = mapped_column(String, nullable=True)
+    verification_code_expires_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=True)
+    
     credit_cards: Mapped[list["CreditCard"]] = relationship("CreditCard", back_populates="user")
     bills: Mapped[list["Bill"]] = relationship("Bill", back_populates="user")

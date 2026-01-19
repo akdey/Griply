@@ -19,6 +19,7 @@ class Settings(BaseSettings):
         "/openapi.json", 
         "/api/v1/openapi.json",
         "/api/v1/auth/register", 
+        "/api/v1/auth/verify-otp",
         "/api/v1/auth/token",
         "/api/v1/sync/webhook"
     ]
@@ -29,6 +30,18 @@ class Settings(BaseSettings):
     GROQ_MODEL: str = "llama3-8b-8192"
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
+    
+    # Email Settings
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    FROM_EMAIL: str = "noreply@grip.com"
+    FROM_NAME: str = "Grip"
+    
+    # Branding
+    APP_NAME: str = "Grip"
+    APP_TAGLINE: str = "Spend smart, stress less."
     
     @property
     def ASYNC_DATABASE_URL(self) -> str:

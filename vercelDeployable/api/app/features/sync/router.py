@@ -1,7 +1,7 @@
 from typing import Annotated
 import logging
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, Header, status
-from sqlalchemy import select
+from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from google_auth_oauthlib.flow import Flow
 
@@ -10,6 +10,7 @@ from app.core.config import get_settings
 from app.features.auth.deps import get_current_user
 from app.features.auth.models import User
 from app.features.sync.service import SyncService
+from app.features.sync.models import SyncLog
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -95,3 +96,93 @@ async def manual_sync(
 ):
     background_tasks.add_task(service.execute_sync, current_user.id, "MANUAL")
     return {"status": "started"}
+
+@router.get("/status")
+async def get_sync_status(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)]
+):
+    """Check if user has Gmail connected and get sync status."""
+    has_credentials = current_user.gmail_credentials is not None
+    
+    if not has_credentials:
+        return {
+            "connected": False,
+            "email": None,
+            "last_sync": None,
+            "total_synced": 0
+        }
+    
+    # Get last successful sync
+    stmt = (
+        select(SyncLog)
+        .where(SyncLog.user_id == current_user.id)
+        .where(SyncLog.status == "SUCCESS")
+        .order_by(desc(SyncLog.start_time))
+        .limit(1)
+    )
+    result = await db.execute(stmt)
+    last_sync = result.scalar_one_or_none()
+    
+    # Get total synced count
+    count_stmt = (
+        select(SyncLog)
+        .where(SyncLog.user_id == current_user.id)
+        .where(SyncLog.status == "SUCCESS")
+    )
+    count_result = await db.execute(count_stmt)
+    all_syncs = count_result.scalars().all()
+    total_synced = sum(log.records_processed for log in all_syncs)
+    
+    return {
+        "connected": True,
+        "email": current_user.email,
+        "last_sync": last_sync.start_time if last_sync else None,
+        "total_synced": total_synced
+    }
+
+@router.delete("/disconnect")
+async def disconnect_gmail(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)]
+):
+    """Disconnect Gmail and remove stored credentials."""
+    if not current_user.gmail_credentials:
+        raise HTTPException(status_code=400, detail="Gmail not connected")
+    
+    current_user.gmail_credentials = None
+    await db.commit()
+    
+    logger.info(f"User {current_user.email} disconnected Gmail")
+    return {"status": "disconnected"}
+
+@router.get("/history")
+async def get_sync_history(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    limit: int = 20
+):
+    """Get sync history for the user."""
+    stmt = (
+        select(SyncLog)
+        .where(SyncLog.user_id == current_user.id)
+        .order_by(desc(SyncLog.start_time))
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    logs = result.scalars().all()
+    
+    return {
+        "syncs": [
+            {
+                "id": log.id,
+                "start_time": log.start_time,
+                "end_time": log.end_time,
+                "status": log.status,
+                "records_processed": log.records_processed,
+                "trigger_source": log.trigger_source,
+                "error_message": log.error_message
+            }
+            for log in logs
+        ]
+    }

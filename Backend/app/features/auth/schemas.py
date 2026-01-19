@@ -24,3 +24,7 @@ class UserResponse(UserBase):
 
 class PasswordVerification(BaseModel):
     password: str
+
+class VerifyOTP(BaseModel):
+    email: EmailStr
+    otp: str

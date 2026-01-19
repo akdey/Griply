@@ -1,263 +1,813 @@
-# Grip: The financial diet that sticks.
+# Grip
 
-**Grip** is a privacy-first, AI-powered financial companion designed to convert raw banking communications into structured, actionable insights without compromising user privacy. With **Hybrid Manual-First** capabilities, credit card lifecycle intelligence, and predictive analytics.
+> **Money that minds itself.**
+
+An AI-powered personal finance companion that automatically transforms your email inbox into actionable financial insights. Track spending, forecast expenses, and stay in control—all while keeping your data private.
+
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org)
+
+---
+
+## 🌟 What Makes Grip Different
+
+### 💰 Know Your True Spending Power
+- **Safe-to-Spend Engine**: Forget bank balance—see what you can *actually* spend after bills, credit cards, and commitments
+- **Real-Time Intelligence**: Automatically accounts for unpaid bills, upcoming rent, unbilled credit card purchases, and safety buffer
+- **Visual Health Indicators**: 4-stage color system (Negative, Critical, Warning, Healthy) shows your financial status at a glance
+- **Predictive Budgeting**: Includes projected recurring expenses ("Surety") before they even arrive
+
+### 🤖 AI Does the Heavy Lifting
+- **Automatic Transaction Extraction**: Connect Gmail once; AI extracts transaction details from bank alerts forever
+- **Hybrid Forecasting**: Combines Meta Prophet (statistical) + Groq LLM (contextual) to predict month-end expenses
+- **Smart Learning**: Remembers your merchant preferences, auto-categorizes future transactions
+- **Natural Language Processing**: Understands messy bank emails and extracts clean, structured data
+
+### 🔒 Privacy Built-In, Not Bolted-On
+- **Local Sanitization First**: PAN, Aadhaar, Credit Card numbers masked *before* any AI sees them
+- **No Data Selling**: Your financial data stays yours. Period.
+- **Self-Hostable**: Open architecture—you control the deployment and data
+- **Read-Only Gmail**: OAuth 2.0 with minimal scopes; we can't send or modify your emails
+
+---
+
+## ⚡ Zero-Effort Automation
+- **One-Click Sync**: Connect Gmail → Transactions flow in automatically
+- **Smart Deduplication**: SHA-256 hashing ensures no duplicate transactions
+- **Background Processing**: Email parsing happens async—never blocks your UI
+- **Merchant Intelligence**: Auto-learns from your verifications, gets smarter over time
+
+
+---
 
 ## 🚀 How It Works
 
-Grip acts as a central hub for your financial life, utilizing a multi-stage pipeline to process data:
+Grip processes your financial data through a sophisticated, privacy-preserving pipeline:
 
-1.  **Ingestion**: Receives banking emails via three methods:
-    *   **Direct Push**: A Google Apps Script pings the backend with raw email content.
-    *   **Manual Pull**: The backend fetches new emails using OAuth2 credentials.
-    *   **Manual Entry**: You can manually record transactions (e.g., Cash, Credit Card) which are automatically marked as `VERIFIED`.
-2.  **Sanitization**: Before reaching any AI model, the raw text is processed by a **PII Sanitizer**. This regex-based engine masks sensitive data like PAN cards, Aadhaar numbers, Credit Card numbers, and UPI IDs.
-3.  **Intelligence extraction**: The "Brain" (powered by **Groq Llama 3**) analyzes the sanitized text to extract structured JSON data:
-    *   Amount & Currency
-    *   Merchant Name
-    *   Category & Sub-Category
-    *   Account Type (Savings, Credit Card, etc.)
-4.  **Deduplication**: A SHA-256 hash of the unique message ID and internal timestamp ensures no transaction is ever processed twice.
-5.  **Memory (Merchant Mapping)**: When you manually verify a transaction, the engine creates a "Merchant Mapping." Future transactions from that same merchant are automatically categorized based on your past preferences.
-6.  **Insights**: A dedicated dashboard provides real-time visibility into your Liquidity and Investment portfolio.
-7.  **Predictive Forecasting**: Leverages a **Hybrid AI Engine** (Meta Prophet locally, or Groq Llama 3 on Vercel) to analyze historical spending patterns and category trends. It predicts your **month-end burden** (remaining expenses for the current month) to calculate a dynamic "Safe-to-Spend" margin.
-8.  **PWA Ready**: Install Grip on your mobile device as a Progressive Web App for a native-like experience with offline capabilities.
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. EMAIL INGESTION (3 Methods)                                 │
+│    • OAuth Sync: Gmail API fetch (manual/scheduled)            │
+│    • Webhook Push: Real-time via Google Apps Script            │
+│    • Manual Entry: Cash/other transactions (auto-verified)     │
+└────────────────────────┬────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 2. PRIVACY SANITIZATION (LOCAL)                                 │
+│    Regex Engine → Masks PII → Safe for AI processing            │
+│    • Credit Card: ****-****-XXXX-1234                           │
+│    • Aadhaar: XXXX-XXXX-5678                                    │
+│    • UPI ID: user@***                                           │
+└────────────────────────┬────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 3. AI EXTRACTION (Groq Llama 3)                                 │
+│    Natural Language → Structured JSON                           │
+│    "Rs 1,250 debited from Card ending 4521 at Swiggy"          │
+│    ↓                                                             │
+│    { amount: 1250, merchant: "Swiggy",                          │
+│      category: "Food & Dining", account: "CREDIT_CARD" }        │
+└────────────────────────┬────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 4. SMART DEDUPLICATION                                          │
+│    SHA-256 Hash → Check Database → Skip if exists               │
+└────────────────────────┬────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 5. MERCHANT INTELLIGENCE                                        │
+│    User Verification → Create Mapping → Future Auto-categorize  │
+│    "SWIGGY*BANGALORE" → Clean: "Swiggy" → Category: Food        │
+└────────────────────────┬────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 6. PREDICTIVE FORECASTING                                       │
+│    Historical Data → Prophet/Groq → Month-end burden prediction │
+│    "Expected ₹12,500 in remaining expenses (18 days left)"     │
+└────────────────────────┬────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ 7. ACTIONABLE INSIGHTS & DASHBOARD                              │
+│    • Safe-to-Spend = Balance - (Bills + CC + Buffer)           │
+│    • Liquidity View: Savings + Cash aggregated balance         │
+│    • Investment Tracking: Mutual Funds, Stocks, FDs portfolio   │
+│    Visual dashboard with spending trends and recommendations    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+
+
 ---
 
-## ✨ Core Functionalities
+## ✨ Key Features
 
-### 🏦 Transaction Management
-- **Verification Workflow**: Transactions start as `PENDING`. You can approve, reject, or adjust them.
-- **Merchant Memory**: Automatically maps raw merchant strings to clean, user-defined display names and categories.
-- **Hybrid Manual-First**: Support for both automated email parsing and manual transaction entry.
-- **Surety Tracking**: Mark recurring bills (rent, utilities) as "surety" for better burden calculation.
+### 💰 Safe-to-Spend Intelligence (Core USP)
 
-### 💳 Credit Card Intelligence
-- **Card Management**: Register multiple credit cards with billing cycle details (statement date, payment due date).
-- **Billing Cycle Tracking**: Automatically calculates current billing cycle, unbilled amount, and days until statement.
-- **Cycle Notifications**: Get alerts X days before your billing cycle closes.
-- **Utilization Monitoring**: Track credit utilization percentage against your credit limit.
-- **Transaction Linking**: Link credit card transactions to specific cards for accurate cycle tracking.
+**The Number That Matters Most**
+
+Forget checking your bank balance—Grip shows you what you can *actually* spend without stress.
+
+**Intelligent Calculation:**
+```
+Safe-to-Spend = Current Balance 
+                - Unpaid Bills
+                - Projected Recurring Bills (Surety)
+                - Current Unbilled Credit Card Expenses
+                - Configurable Safety Buffer (default 10%)
+```
+
+**Real-World Example:**
+```
+Bank Balance:              ₹45,000
+- Rent (due in 5 days):    -₹15,000
+- Utilities (projected):    -₹2,500
+- Unbilled CC purchases:    -₹8,200
+- Safety Buffer (10%):      -₹1,930
+─────────────────────────────────────
+Safe-to-Spend:             ₹17,370 ✅
+```
+
+**Visual Health System:**
+- 🔴 **Negative**: Overdrawn (immediate action required)
+- 🟠 **Critical**: < ₹1,000 (extremely tight budget)
+- 🟡 **Warning**: ₹1,000 - ₹3,000 (limited spending room)
+- 🟢 **Healthy**: > ₹3,000 (comfortable spending capacity)
+
+**Why This Matters:**
+- **Prevents Overspending**: Accounts for committed expenses before they hit
+- **Reduces Anxiety**: One number tells you your true spending power
+- **Builds Buffer**: Automatic safety margin prevents living paycheck-to-paycheck
+- **Predictive**: Includes projected bills, not just current ones
+
+### 🧠 AI-Powered Intelligence
+
+**Automatic Transaction Extraction**
+- Connects to Gmail via OAuth 2.0 (read-only)
+- AI parses bank alerts, credit card statements, UPI confirmations
+- Extracts: Amount, Merchant, Category, Account Type, Date
+- Natural language processing handles different email formats
+- Works with major Indian banks (ICICI, HDFC, SBI, Axis, Kotak, and others)
+
+**Hybrid Forecasting Engine**
+- **Meta Prophet**: Statistical time-series analysis of daily spending patterns
+- **Groq LLM**: Category-level breakdowns with contextual reasoning
+  - "Food & Dining trending 20% higher: 4 weekend restaurant visits vs 2 last month"
+  - "Expected ₹12,500 in remaining expenses (18 days left in month)"
+- Predicts month-end spending based on historical patterns
+- Adapts to seasonal patterns, holidays, and lifestyle changes
+
+**Merchant Intelligence & Memory**
+- First time: "SWIGGY*BANGALORE127" → AI suggests "Food & Dining"
+- You verify: "Food & Dining > Online Food"
+- Forever after: "SWIGGY*" auto-categorized as "Food & Dining > Online Food"
+- Learns from every verification, gets smarter over time
+- Clean merchant names (no more cryptic transaction descriptions)
+
+### 💳 Credit Card Lifecycle Management
+
+**Comprehensive Card Tracking**
+- Register unlimited credit cards with billing details
+- Tracks: Card name, last 4 digits, statement date, payment due date, credit limit
+- Automatic billing cycle calculation (current cycle, days remaining)
+- Real-time unbilled amount in current cycle
+- Credit utilization monitoring (% of limit used)
+
+**Billing Cycle Intelligence**
+```
+HDFC Regalia Gold (••1234)
+───────────────────────────────────
+Statement Date:    15th (every month)
+Payment Due:       25th (every month)
+Current Cycle:     Jan 16 - Feb 15
+Days to Statement: 12 days
+───────────────────────────────────
+Unbilled Amount:   ₹8,247
+Credit Limit:      ₹3,00,000
+Utilization:       2.7% ✅
+```
+
+**Smart Alerts & Predictions**
+- "Cycle closes in 5 days: ₹8,247 unbilled"
+- "Estimated bill: ₹8,500 (based on current trend)"
+- "Payment due in 10 days: ₹12,340"
+- Prevents surprise bills by tracking unbilled amounts in real-time
+
+**Transaction Linking**
+- Link each transaction to specific credit card
+- Accurate per-card spending tracking
+- Prevents overspending within billing cycle
+- Helps optimize card usage across multiple cards
 
 ### 📋 Bill Management & "Surety" Intelligence
-- **Bill Tracking**: Create one-time or recurring bills with due dates.
-- **Surety Bills**: Identify predictable recurring bills (rent, utilities, maintenance).
-- **Burden Calculation**: Formula: `Frozen Funds = UnpaidBills + ProjectedSuretyBills + CurrentUnbilledCC`
-- **Upcoming Bills**: View all unpaid bills due in the next X days.
-- **Payment Tracking**: Mark bills as paid/unpaid.
 
-### 🔄 Multi-Source Sync
-- **Google Apps Script Webhook**: Secure production-ready endpoint for real-time transaction ingestion.
-- **Legacy OAuth Sync**: Fallback method for manual history fetching using Google API Client.
-- **X-GRIP-SECRET**: Header-based authentication for secure webhook communication.
+**Bill Tracking**
+- Create one-time or recurring bills
+- Set due dates and payment amounts
+- Mark bills as paid/unpaid
+- View upcoming bills (next 7/30/60 days)
+- Payment reminders
 
-### 📉 Predictive Analytics & Hybrid Forecasting
-- **Hybrid AI Engine**: 
-    - **Meta Prophet**: Uses high-performance statistical time-series forecasting for deep local analysis of daily spending totals.
-    - **Groq LLM Intelligence**: seamlessly provides **category-level breakdowns** and **context-aware reasoning** (e.g., "Trending up due to weekend dining") for the forecasted amounts.
-- **Month-End Precision**: specific forecasting for the *remaining days* of the current month, ensuring you don't overspend before your next paycheck.
-- **Credit Card Bill Prediction**: Analyzes previous spending patterns and unbilled transactions to estimate upcoming credit card liabilities.
-- **Variance Analysis**: Compare current month-to-date spending vs. last month-to-date with category-level breakdowns.
-- **Percentage Metrics**: Calculate % over/under for total spend and category-specific spend.
-- **Spend Analysis**: Breaks down historical data to identify "Sure Bills" (recurring rent, utilities, maintenance) and calculate a reliable "Safe-to-Spend" limit.
+**Surety Bills (Predictable Expenses)**
 
-### 💰 Safe-to-Spend Intelligence
-- **Real-Time Calculation**: `Safe-to-Spend = Balance - FrozenFunds - Buffer`
-- **Frozen Funds Breakdown**: See exactly what's locked (unpaid bills, projected surety, unbilled CC).
-- **Configurable Buffer**: Set your own safety buffer percentage (default 10%).
-- **Visual Health Indicators**: Intuitive color-coded states (Critical, Warning, Healthy) with negative balance alerts.
-- **Smart Recommendations**: Get actionable advice based on your spending capacity.
+The secret sauce for accurate Safe-to-Spend calculation.
 
-### 🛡️ Privacy & Security
-- **Local-First Sanitization**: Sensitive data is masked *locally* before being sent to any third-party AI APIs.
-- **JWT Authentication**: Secure user sessions with encrypted tokens.
-- **Production-Ready Logging**: Balanced logs that support real-time debugging (local) and serverless environments (Vercel).
+**What is "Surety"?**
+Predictable, recurring expenses that you *know* are coming:
+- Rent (every 1st of month)
+- Electricity/Water (monthly)
+- Internet/Phone bills
+- Insurance premiums
+- Subscriptions (Netflix, Spotify, etc.)
+- Society maintenance
 
-### 📊 Financial Dashboard
-- **Liquidity View**: Aggregated balances across savings and cash.
-- **Investment Tracking**: Grouped views for mutual funds, stocks, and fixed deposits.
-- **Credit Card Overview**: See all cards with unbilled amounts and upcoming statement dates.
-- **Bill Calendar**: Upcoming bills and their due dates.
+**How It Works:**
+```
+① Mark bill as "Surety" (predictable recurring)
+② Grip automatically projects next occurrence
+③ Amount included in Safe-to-Spend calculation
+④ Even if not yet billed, it's accounted for
+```
+
+**Example:**
+```
+Rent: ₹15,000 (Surety, due 1st of every month)
+Today: Jan 20
+Next Due: Feb 1 (12 days away)
+
+Safe-to-Spend: Already reduced by ₹15,000
+Result: Prevents overspending before rent is due ✅
+```
+
+**Frozen Funds Breakdown:**
+```
+┌────────────────────────────────────────┐
+│ Frozen Funds: ₹25,700                  │
+├────────────────────────────────────────┤
+│ • Unpaid Bills:           ₹10,500      │
+│ • Projected Surety:       ₹12,000      │
+│ • Unbilled CC:             ₹3,200      │
+└────────────────────────────────────────┘
+```
+
+### 🎯 Financial Goals
+
+**Goal Setting & Tracking**
+- Set savings goals with target amounts and deadlines
+- Track progress towards each goal
+- Visual progress indicators
+- Automatic calculation of monthly savings needed
+- Integration with Safe-to-Spend (optional goal reserves)
+
+**Goal Types:**
+- Emergency Fund
+- Vacation
+- Gadget Purchase
+- Down Payment
+- Custom Goals
+
+**Smart Recommendations:**
+- "Save ₹8,500/month to reach ₹1,00,000 goal by December"
+- "You're 45% towards your iPhone fund!"
+- "Adjust Safe-to-Spend buffer to include goal savings"
+
+### 📊 Advanced Analytics
+
+**Variance Analysis**
+- Month-to-date vs last month comparison
+- Category-level spend changes with % metrics
+- "You spent 23% more on Food & Dining this month (₹8,500 vs ₹6,900)"
+- Trend detection: "Entertainment spending doubled"
+- Visual charts showing spend distribution
+
+**Spend Categorization**
+- 20+ default categories (Food & Dining, Shopping, Transport, etc.)
+- Hierarchical subcategories (e.g., Food > Restaurants, Groceries, Online Food)
+- Custom tag system for personal organization (#business, #vacation, #medical)
+- Pie charts, bar graphs, trend lines
+- Export category reports
+
+**Monthly Summary Dashboard**
+- Total income vs expenses
+- Category-wise breakdown
+- Top merchants
+- Largest transactions
+- Spending trends over time
+
+### 🔄 Automated Email Sync
+
+**Gmail Integration (Zero Manual Work)**
+- One-click OAuth 2.0 connection (read-only access)
+- Searches inbox for transaction keywords automatically:
+  - "spent", "debited", "transaction", "alert", "paid", "credited"
+- Processes bank alerts, credit card statements, UPI confirmations
+- Background sync (doesn't block UI)
+- Deduplication (SHA-256 hash prevents duplicate transactions)
+
+**Sync Features:**
+- **Manual Trigger**: Click "Sync Now" anytime for instant update
+- **Connection Status**: See last sync time, total transactions imported
+- **Sync History**: Complete log with status, errors, records processed
+- **Easy Disconnect**: One-click disconnect, reconnect anytime
+- **Format-Agnostic**: Works with different email formats via natural language AI
+
+**Supported Email Types:**
+```
+✅ Bank transaction alerts      (ICICI, HDFC, SBI, etc.)
+✅ Credit card alerts           (Statement generated, payment due)
+✅ UPI payment confirmations    (GPay, PhonePe, Paytm)
+✅ Debit card purchases         (POS transactions)
+✅ NEFT/RTGS/IMPS alerts       (Fund transfers)
+✅ Wallet transactions          (Paytm, Mobikwik)
+```
+
+### 🔐 Privacy & Security (Core Differentiator)
+
+**Local-First Sanitization**
+```
+Before AI processing (happens on your server):
+────────────────────────────────────────────────
+Original: "Paid ₹500 using Card 4521-6789-1234-5678"
+Masked:   "Paid ₹500 using Card ****-****-****-5678"
+
+Original: "PAN: ABCDE1234F, Aadhaar: 9876-5432-1098"
+Masked:   "PAN: XXXXX1234X, Aadhaar: XXXX-XXXX-1098"
+
+Original: "UPI: user@paytm paid merchant@phonepe"
+Masked:   "UPI: ****@paytm paid ****@phonepe"
+```
+
+**What Gets Sanitized:**
+- ✅ Credit card numbers (only last 4 digits visible)
+- ✅ PAN cards (only last 4 chars + 1 middle char)
+- ✅ Aadhaar numbers (only last 4 digits)
+- ✅ UPI IDs (username masked)
+- ✅ Phone numbers (middle digits masked)
+
+**Security Architecture:**
+- JWT authentication with bcrypt password hashing
+- Email verification with OTP (SMTP)
+- Read-only Gmail OAuth (can't send/modify emails)
+- Encrypted OAuth tokens in database (PostgreSQL JSONB encrypted)
+- No third-party analytics or tracking
+- Self-hostable (you control the data)
+
+### 🏷️ Advanced Organization
+
+**Tags System**
+- Create custom tags (#vacation, #business, #medical, #family)
+- Tag individual transactions
+- Filter and analyze by tags
+- Multi-tag support (one transaction, multiple tags)
+
+**Categories & Subcategories**
+- 20+ predefined categories
+- Hierarchical structure (Category > Subcategory)
+- Fully customizable (add/edit/delete)
+- Visual spending distribution
+
+**Search & Filters**
+- Search by merchant, amount, category, tag
+- Date range filters
+- Account type filters (Credit Card, Savings, Cash, UPI)
+- Status filters (Pending, Verified)
+- Export filtered results
 
 ---
 
-## 🛠️ Tech Stack
-- **Backend**: FastAPI (Python 3.11+)
-- **Database**: PostgreSQL (via SQLAlchemy + asyncpg)
-- **AI Engine**: Groq (Llama 3 70B/8B)
-- **Forecasting**: Meta Prophet
-- **Hosting**: Vercel ready
-- **Package Management**: uv
-- **Frontend**: React 19, Vite, TailwindCSS 4, Zustand, Recharts
+## 📱 Transaction Management & Ingestion
+
+### 📥 Three Ways to Add Transactions
+
+**1. OAuth Email Sync (Recommended)**
+- Connect Gmail via OAuth 2.0
+- Manual trigger: Click "Sync Now" anytime
+- Scheduled: Set up automatic periodic sync
+- Fetches transaction emails from last N days
+- Background processing (non-blocking)
+
+**2. Webhook Push (Real-Time)**
+- Google Apps Script integration
+- Pings backend with raw email content in real-time
+- Header-based authentication (`X-GRIP-SECRET`)
+- Secure production-ready endpoint
+- Zero latency from email arrival to transaction creation
+
+**3. Manual Entry**
+- For cash transactions or non-email sources
+- Click "+" button → Enter details → Save
+- Automatically marked as `VERIFIED` (no AI review needed)
+- Supports all account types: Cash, Credit Card, Savings, UPI
+- Instant addition to dashboard
+
+### 📊 Dashboard & Portfolio Insights
+
+**Liquidity View**
+- Aggregated balance across all savings accounts
+- Cash on hand tracking
+- Real-time available liquid funds
+- Trend charts showing liquidity over time
+
+**Investment Portfolio Tracking**
+- Mutual Funds with current value and returns
+- Stocks and equity holdings
+- Fixed Deposits (FDs) with maturity dates
+- Portfolio distribution pie charts
+- Total investment value and growth tracking
+
+**Financial Health Overview**
+- Safe-to-Spend amount (hero metric)
+- Frozen funds breakdown
+- Upcoming bills and due dates
+- Credit card payment reminders
+- Month-end expense forecast
+
+### 🔄 Email Sync Features (OAuth)
+
+**Gmail Integration**
+- OAuth 2.0 secure connection
+- One-click authorization
+- Searches for transaction keywords automatically
+- Real-time sync (manual trigger or webhook)
+- Processes last N emails efficiently
+
+**Sync Features**
+- Connection status monitoring
+- Sync history with logs
+- Error tracking and retry logic
+- One-click disconnect
+- Background processing (non-blocking)
+
+**Supported Email Types**
+- Bank transaction alerts (ICICI, HDFC, SBI, etc.)
+- Credit card statements and alerts
+- UPI payment confirmations
+- Debit card purchase notifications
+- Any financial transaction email
 
 ---
 
-## ⚙️ Environment Setup
+## 🛠️ Technology Stack
+
+### Backend
+- **Framework**: FastAPI (Python 3.11+) - High-performance async API
+- **Database**: PostgreSQL with SQLAlchemy (async) + asyncpg
+- **AI/ML**:
+  - **Groq** (Llama 3 70B/8B) - Transaction extraction & forecasting
+  - **Meta Prophet** - Statistical time-series forecasting
+- **Authentication**: JWT + bcrypt
+- **Email**: SMTP for OTP delivery
+- **OAuth**: Google OAuth 2.0 for Gmail
+- **Deployment**: Vercel-ready (Prophet auto-falls back to Groq)
+
+### Frontend
+- **Framework**: React 19 with TypeScript
+- **Build**: Vite (lightning-fast HMR)
+- **Styling**: Vanilla CSS (no framework bloat)
+- **State**: Zustand (lightweight)
+- **Data Fetching**: TanStack Query (React Query)
+- **Charts**: Recharts
+- **Icons**: Lucide React
+- **Animations**: Framer Motion
+- **PWA**: Service workers for offline support
+
+### Infrastructure
+- **Package Manager**: uv (Rust-based, 10-100x faster than pip)
+- **Database**: NeonDB / Supabase (serverless Postgres)
+- **Hosting**: Vercel (backend + frontend)
+- **Version Control**: Git / GitHub
+
+---
+
+## ⚡ Quick Start
 
 ### Prerequisites
 - Python 3.11+
-- [uv](https://github.com/astral-sh/uv) (Recommended)
-- PostgreSQL (e.g., Supabase or NeonDB)
-- Groq API Key
+- Node.js 18+
+- PostgreSQL database
+- Gmail account (for email sync)
+- Groq API key ([Get one free](https://console.groq.com))
 
-### Configuration
-Create a `.env` file in the root directory:
+### 1. Clone & Install
 
-```env
-DATABASE_URL="postgresql://user:pass@host:port/dbname?pgbouncer=true"
-SECRET_KEY="your-jwt-secret-here"
-ENVIRONMENT="local" # Set to 'production' on Vercel
-
-# External APIs
-GROQ_API_KEY="your-groq-api-key"
-GOOGLE_CLIENT_ID="your-google-id"
-GOOGLE_CLIENT_SECRET="your-google-secret"
-
-# Feature Flags
-USE_AI_FORECASTING="True" # Required for both Prophet and Groq-based forecasting
-
-# Secondary Ingress
-GRIP_SECRET="your-custom-webhook-secret"
-```
-
-### Installation & Execution
-
-1.  **Install dependencies**:
-    ```bash
-    uv sync
-    ```
-
-2.  **Run database migrations**:
-    ```bash
-    alembic upgrade head
-    ```
-
-3.  **Seed the database** (Optional - creates amit@grip.com/admin and default categories):
-    ```bash
-    uv run scripts/seed_db.py
-    ```
-
-4.  **Run the Backend**:
-    ```bash
-    uv run main.py
-    ```
-
-5.  **Run the Frontend**:
-    Open a new terminal:
-    ```bash
-    cd Frontend
-    npm install
-    npm run dev
-    ```
-
-6.  **Deploy to Vercel**:
-    ```bash
-    vercel --prod
-    ```
-
----
-
-## 📖 API Documentation
-Once running, you can access the interactive API docs at:
-- Swagger UI: `http://localhost:8000/docs`
-- Redoc: `http://localhost:8000/redoc`
-
-### Key Endpoints
-
-#### Credit Cards
-- `POST /api/v1/credit-cards` - Add a new credit card
-- `GET /api/v1/credit-cards` - List all cards
-- `GET /api/v1/credit-cards/{id}/cycle-info` - Get billing cycle information
-
-#### Bills
-- `POST /api/v1/bills` - Create a bill (one-time or recurring)
-- `GET /api/v1/bills/upcoming?days=30` - Get upcoming bills
-- `POST /api/v1/bills/{id}/mark-paid` - Mark bill as paid
-
-#### Analytics
-- `GET /api/v1/analytics/variance` - Month-to-date vs last month comparison
-- `GET /api/v1/analytics/burden` - Calculate frozen funds
-- `GET /api/v1/analytics/safe-to-spend` - Real-time safe-to-spend calculation
-
-#### Transactions
-- `POST /api/v1/transactions/manual` - Manually record a transaction
-- `GET /api/v1/transactions/pending` - Get pending transactions for verification
-
----
-
-## 🎯 Usage Examples
-
-### Adding a Credit Card
 ```bash
-curl -X POST "http://localhost:8000/api/v1/credit-cards" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "card_name": "HDFC Regalia",
-    "last_four_digits": "1234",
-    "statement_date": 15,
-    "payment_due_date": 25,
-    "credit_limit": 500000
-  }'
+# Clone repository
+git clone https://github.com/yourusername/grip.git
+cd grip
+
+# Backend setup
+cd Backend
+uv sync  # Install dependencies
+
+# Frontend setup
+cd ../Frontend
+npm install
 ```
 
-### Creating a Recurring Bill
+### 2. Configure Environment
+
+**Backend (`Backend/.env`):**
 ```bash
-curl -X POST "http://localhost:8000/api/v1/bills" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Rent",
-    "amount": 25000,
-    "due_date": "2026-02-01",
-    "is_recurring": true,
-    "recurrence_day": 1,
-    "category": "Housing",
-    "sub_category": "Rent"
-  }'
+# Database
+DATABASE_URL=postgresql://user:pass@host:port/dbname
+
+# Security
+SECRET_KEY=your-secret-key-here
+GRIP_SECRET=webhook-secret
+
+# AI
+GROQ_API_KEY=your-groq-api-key
+GROQ_MODEL=llama3-8b-8192
+USE_AI_FORECASTING=true
+
+# Gmail OAuth (for email sync)
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+
+# Email (for OTP)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-gmail-app-password
+FROM_EMAIL=noreply@grip.com
+FROM_NAME=Grip
+
+# Branding
+APP_NAME=Grip
+APP_TAGLINE=Money that minds itself.
 ```
 
-### Manual Transaction Entry
+**Frontend (`Frontend/.env.local`):**
 ```bash
-curl -X POST "http://localhost:8000/api/v1/transactions/manual" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "amount": 1500,
-    "merchant_name": "Starbucks",
-    "category": "Food & Dining",
-    "sub_category": "Coffee",
-    "account_type": "CREDIT_CARD",
-    "credit_card_id": "your-card-uuid",
-    "transaction_date": "2026-01-17",
-    "is_surety": false
-  }'
+VITE_API_BASE_URL=http://localhost:8000/api/v1
+VITE_APP_NAME=Grip
+VITE_APP_TAGLINE=Money that minds itself.
 ```
 
-### Check Safe-to-Spend
-```bash
-curl -X GET "http://localhost:8000/api/v1/analytics/safe-to-spend?buffer=0.10" \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
-
----
-
-## 🔄 Migration Guide
-
-If you're upgrading from a previous version, run the database migration:
+### 3. Initialize Database
 
 ```bash
 cd Backend
-alembic upgrade head
+
+# Run migrations
+uv run alembic upgrade head
+
+# Seed default data (optional)
+uv run python scripts/seed_db.py
+# Creates user: amit@grip.com / password: admin
 ```
 
-This will:
-- Create `credit_cards` and `bills` tables
-- Add new columns to `transactions` table (`is_surety`, `credit_card_id`, `transaction_date`, `is_manual`)
-- Backfill `transaction_date` from existing `created_at` values
+### 4. Run Development Servers
+
+```bash
+# Terminal 1 - Backend
+cd Backend
+uv run uvicorn app.main:app --reload
+# → http://localhost:8000
+
+# Terminal 2 - Frontend
+cd Frontend
+npm run dev
+# → http://localhost:5173
+```
+
+### 5. Set Up Gmail Sync (Optional)
+
+See **[Gmail Sync Setup Guide](GMAIL_SYNC_QUICKSTART.md)** for detailed instructions.
+
+**Quick version:**
+1. Create Google Cloud project
+2. Enable Gmail API
+3. Create OAuth credentials
+4. Add credentials to `.env`
+5. Connect in app: More → Gmail Sync
+
+---
+
+## 📖 Usage
+
+### First-Time Setup
+
+1. **Register Account**
+   - Open http://localhost:5173
+   - Click "Sign Up"
+   - Enter email and password
+   - Check email for 6-digit OTP
+   - Verify and auto-login ✅
+
+2. **Connect Gmail** (Recommended)
+   - Go to More → Gmail Sync
+   - Click "Connect Gmail"
+   - Approve Google OAuth
+   - Click "Sync Now"
+   - Watch transactions flow in automatically! 🎉
+
+3. **Add Credit Cards** (Optional)
+   - Go to My Cards
+   - Add each card with billing details
+   - Link transactions to cards for cycle tracking
+
+4. **Set Up Bills** (Optional)
+   - Go to Bills & Surety
+   - Add recurring bills (rent, utilities, subscriptions)
+   - Mark predictable expenses as "Surety"
+
+### Daily Workflow
+
+**Automated (Recommended):**
+1. Gmail Sync runs automatically (or click "Sync Now")
+2. AI extracts transaction details
+3. Review pending transactions in Transactions tab
+4. Verify or edit as needed
+5. Check Dashboard for safe-to-spend amount
+
+**Manual Entry:**
+1. Click "+" button
+2. Enter transaction details
+3. Select category
+4. Save (auto-marked as verified)
+
+---
+
+## 🔌 API Documentation
+
+### Interactive Docs
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+### Key Endpoints
+
+#### Authentication
+```bash
+POST /api/v1/auth/register        # Register with OTP
+POST /api/v1/auth/verify-otp      # Verify OTP
+POST /api/v1/auth/token           # Login (JWT)
+```
+
+#### Gmail Sync
+```bash
+GET  /api/v1/sync/google/auth     # Get OAuth URL
+POST /api/v1/sync/google/callback # Complete OAuth
+GET  /api/v1/sync/status          # Check connection
+POST /api/v1/sync/manual          # Trigger sync
+GET  /api/v1/sync/history         # View sync logs
+DELETE /api/v1/sync/disconnect    # Disconnect Gmail
+```
+
+#### Transactions
+```bash
+GET  /api/v1/transactions                   # List all
+POST /api/v1/transactions/manual            # Manual entry
+GET  /api/v1/transactions/pending           # Pending review
+PUT  /api/v1/transactions/{id}              # Update
+DELETE /api/v1/transactions/{id}            # Delete
+POST /api/v1/transactions/{id}/verify       # Verify
+```
+
+#### Analytics
+```bash
+GET /api/v1/analytics/safe-to-spend  # Real-time calculation
+GET /api/v1/analytics/variance       # Month-over-month
+GET /api/v1/analytics/monthly-summary # Monthly stats
+```
+
+#### Forecasting
+```bash
+GET /api/v1/dashboard/forecast  # 30-day AI prediction
+```
+
+---
+
+## 🎨 Screenshots
+
+### Dashboard
+- Safe-to-spend amount with visual health indicator
+- AI forecast for next 30 days
+- Frozen funds breakdown
+- Spending variance vs last month
+
+### Gmail Sync
+- One-click OAuth connection
+- Manual sync trigger
+- Sync history with status
+- Connection management
+
+### Transactions
+- Grouped by time periods (Today, Yesterday, Last Week, etc.)
+- Pending verification workflow
+- Category and tag filters
+- Quick edit/delete actions
+
+### Credit Cards
+- All cards overview with unbilled amounts
+- Billing cycle progress
+- Statement date countdown
+- Credit utilization tracking
+
+---
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+**Backend:**
+```bash
+cd Backend
+vercel --prod
+```
+
+**Frontend:**
+```bash
+cd Frontend
+npm run build
+vercel --prod
+```
+
+**Environment Variables:**
+- Add all `.env` variables in Vercel dashboard
+- Update `GOOGLE_CLIENT_ID` redirect URIs with production URL
+- Ensure `DATABASE_URL` points to production database
+
+### Docker (Alternative)
+
+```bash
+# Coming soon
+docker-compose up -d
+```
+
+---
+
+## 🔒 Privacy & Data Handling
+
+### What We Store
+- Transaction metadata (amount, merchant, category, dates)
+- Encrypted OAuth tokens (Gmail access)
+- User preferences and mappings
+- Sync logs (for debugging)
+
+### What We DON'T Store
+- Full email content
+- Credit card CVVs or PINs
+- Unmasked PAN/Aadhaar numbers
+- Gmail passwords
+- Any sensitive PII
+
+### Data Flow
+1. Email received in your Gmail
+2. OAuth token grants read access
+3. Email content fetched via API
+4. **Sanitization happens locally** (regex masking)
+5. Sanitized text sent to Groq for extraction
+6. Extracted JSON stored in database
+7. Original email remains in your Gmail (unchanged)
+
+---
+
+## 🤝 Contributing
+
+This project is currently private. For feature requests or bug reports, please open an issue.
 
 ---
 
 ## 📝 License
 
-This project is private and proprietary.
+Private and proprietary. All rights reserved.
 
+---
+
+## 🙏 Acknowledgments
+
+Built with incredible open-source tools:
+- **Groq** - Lightning-fast LLM inference
+- **Meta Prophet** - Time-series forecasting
+- **FastAPI** - Modern Python web framework
+- **React** - UI library
+- **PostgreSQL** - Robust database
+- **Vercel** - Deployment platform
+
+---
+
+## 📚 Documentation
+
+- **[Quick Start Guide](GMAIL_SYNC_QUICKSTART.md)** - 15-minute setup
+- **[Implementation Details](GMAIL_SYNC_IMPLEMENTATION.md)** - Technical deep-dive
+- **[Session Summary](SESSION_SUMMARY.md)** - Recent updates
+
+---
+
+## 💬 Support
+
+For setup help or questions, refer to:
+1. **API Docs**: http://localhost:8000/docs
+2. **Troubleshooting**: Check `GMAIL_SYNC_IMPLEMENTATION.md`
+3. **Common Issues**: See "Troubleshooting" section in setup guides
+
+---
+
+<div align="center">
+
+**Grip** - Money that minds itself.
+
+*Made with ❤️ and AI*
+
+</div>

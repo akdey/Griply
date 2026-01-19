@@ -12,12 +12,14 @@ import {
     CircleUserRound,
     ArrowLeft,
     CalendarClock,
-    Wallet
+    Wallet,
+    Mail
 } from 'lucide-react';
 import { useAuthStore } from '../lib/store';
 import { Loader } from '../components/ui/Loader';
 
 const FEATURE_CARDS = [
+    { id: 'sync', label: 'Gmail Sync', icon: Mail, path: '/sync', color: 'text-green-400', bgColor: 'bg-green-500/10' },
     { id: 'transactions', label: 'History', icon: Receipt, path: '/transactions', color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
     { id: 'scheduled', label: 'Scheduled', icon: CalendarClock, path: '/scheduled', color: 'text-teal-400', bgColor: 'bg-teal-500/10' },
     { id: 'goals', label: 'Goals', icon: Wallet, path: '/goals', color: 'text-rose-400', bgColor: 'bg-rose-500/10' },

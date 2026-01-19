@@ -199,6 +199,15 @@ class AnalyticsService:
             
             current_balance = balance_result.scalar() or Decimal("0")
             
+            # Check if user has any transactions at all (to distinguish new vs existing users)
+            txn_count_stmt = (
+                select(func.count(Transaction.id))
+                .where(Transaction.user_id == user_id)
+            )
+            txn_count_result = await db.execute(txn_count_stmt)
+            total_transactions = txn_count_result.scalar() or 0
+            is_new_user = total_transactions == 0
+            
             # Calculate buffer using simple average of discretionary spending
             # Get discretionary expenses from last 30 days
             today_date = date.today()
@@ -223,17 +232,26 @@ class AnalyticsService:
             # Buffer = Average daily discretionary × days till salary
             buffer = avg_daily_discretionary * Decimal(str(days_till_salary))
             
-            # Ensure minimum buffer of ₹500
-            min_buffer = Decimal("500")
-            buffer = max(buffer, min_buffer)
+            # Only enforce minimum buffer if user has positive balance
+            if current_balance > 0:
+                min_buffer = Decimal("500")
+                buffer = max(buffer, min_buffer)
+            else:
+                # No/negative balance means no buffer needed
+                buffer = Decimal("0")
             
             # Set method for display
             buffer_method = "average"
             buffer_confidence = "medium"
             
             # Calculate safe-to-spend
-            # We allow negative values to show the user they are overextended
-            safe_amount = current_balance - frozen_breakdown.total_frozen - buffer
+            # If balance is zero or negative, safe_to_spend should be 0 (can't spend what you don't have)
+            if current_balance <= 0:
+                safe_amount = Decimal("0")
+            else:
+                safe_amount = current_balance - frozen_breakdown.total_frozen - buffer
+                # Cap at 0 minimum (can't spend negative amounts)
+                safe_amount = max(Decimal("0"), safe_amount)
             
             # Calculate buffer as percentage for response (for UI display)
             buffer_percentage = float(buffer / current_balance) if current_balance > 0 else 0.0
@@ -243,11 +261,17 @@ class AnalyticsService:
             salary_date = next_month.replace(day=1)
             salary_str = salary_date.strftime("%b %d")
             
-            # Generate recommendation
-            if current_balance <= 0:
-                recommendation = "❌ Your balance is negative. Please stop spending immediately and check your inflows."
-            elif safe_amount <= 0:
-                recommendation = f"⚠️ No safe spending capacity. ₹{buffer:.0f} needed till salary ({salary_str})"
+            # Generate recommendation based on user state
+            if is_new_user:
+                recommendation = "👋 Welcome! Add your first transaction to start tracking your finances."
+            elif current_balance < 0:
+                deficit = abs(current_balance)
+                recommendation = f"📉 Balance is ₹{deficit:.0f} in deficit. Add income to recover."
+            elif current_balance == 0:
+                recommendation = "⚠️ No liquid balance available. Please add income transactions."
+            elif safe_amount == 0:
+                overextended = frozen_breakdown.total_frozen + buffer - current_balance
+                recommendation = f"🔒 Overextended by ₹{overextended:.0f}. Frozen + Buffer exceed balance."
             elif safe_amount < (current_balance * Decimal("0.20")):
                 recommendation = f"⚡ Low capacity. ₹{buffer:.0f} reserved till salary ({salary_str})"
             else:

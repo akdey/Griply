@@ -58,9 +58,10 @@ class ForecastingService:
     async def _calculate_prophet(self, history_data: List[dict], category_history: List[dict], time_frame: str, days: int) -> ForecastResponse:
         default_response = ForecastResponse(
             amount=Decimal("0.00"), 
-            reason="Insufficient data for statistical modeling.", 
+            reason="Insufficient history. Need at least 10 days of data.", 
             time_frame=time_frame,
-            confidence="low"
+            confidence="low",
+            breakdown=[]
         )
         
         if not history_data or len(history_data) < 10: # Lower threshold since we might be late in month
