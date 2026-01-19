@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     FRONTEND_ORIGIN: str = "http://localhost:5173"  # Frontend URL for OAuth origin parameter
+    GOOGLE_REDIRECT_URI: str = "postmessage"
     
     # Email Settings
     SMTP_HOST: str = "smtp.gmail.com"

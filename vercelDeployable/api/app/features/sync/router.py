@@ -16,7 +16,10 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 router = APIRouter()
 
-def get_google_flow(redirect_uri: str = "postmessage"):
+def get_google_flow(redirect_uri: str = None):
+    if redirect_uri is None:
+        redirect_uri = settings.GOOGLE_REDIRECT_URI
+    
     flow = Flow.from_client_config(
         {
             "web": {
@@ -41,8 +44,12 @@ async def google_auth(current_user: Annotated[User, Depends(get_current_user)]):
             detail="OAuth configuration error: FRONTEND_ORIGIN not set"
         )
     
+    # Strip any trailing slash from origin as Google is strict about this
+    origin = settings.FRONTEND_ORIGIN.rstrip('/')
+    
     flow = get_google_flow()
     # Include origin parameter to match Authorized JavaScript Origins in Google Console
+    # The origin parameter is specifically required for 'postmessage' redirect_uri
     auth_url, _ = flow.authorization_url(
         access_type='offline',
         prompt='consent',
@@ -50,14 +57,13 @@ async def google_auth(current_user: Annotated[User, Depends(get_current_user)]):
     )
     
     # Add origin parameter manually to the URL
-    # This must match the value in "Authorized JavaScript Origins" in Google Console
+    # This must match one of the entries in "Authorized JavaScript Origins" in Google Console
     if '?' in auth_url:
-        auth_url += f'&origin={settings.FRONTEND_ORIGIN}'
+        auth_url += f'&origin={origin}'
     else:
-        auth_url += f'?origin={settings.FRONTEND_ORIGIN}'
+        auth_url += f'?origin={origin}'
     
-    logger.info(f"Generated OAuth URL with origin: {settings.FRONTEND_ORIGIN}")
-    logger.debug(f"Full auth URL: {auth_url}")
+    logger.info(f"Generated OAuth URL with origin: {origin} and redirect_uri: {settings.GOOGLE_REDIRECT_URI}")
     
     return {"url": auth_url}
 
