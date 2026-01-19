@@ -47,31 +47,17 @@ async def google_auth(
             detail="OAuth configuration error: FRONTEND_ORIGIN not set"
         )
     
-    # Strip any trailing slash from origin as Google is strict about this
-    origin = settings.FRONTEND_ORIGIN.rstrip('/')
-    
-    # Priority for redirect_uri: 
-    # 1. Passed in query param
-    # 2. Settings (usually 'postmessage')
     flow = get_google_flow(redirect_uri)
     
-    # Include origin parameter to match Authorized JavaScript Origins in Google Console
-    # The origin parameter is specifically required for 'postmessage' redirect_uri
+    # Standard OAuth 2.0 authorization URL generation
     auth_url, _ = flow.authorization_url(
         access_type='offline',
         prompt='consent',
         include_granted_scopes='true'
     )
     
-    # Add origin parameter manually to the URL
-    # This must match one of the entries in "Authorized JavaScript Origins" in Google Console
-    if '?' in auth_url:
-        auth_url += f'&origin={origin}'
-    else:
-        auth_url += f'?origin={origin}'
-    
     effective_redirect = redirect_uri or settings.GOOGLE_REDIRECT_URI
-    logger.info(f"Generated OAuth URL with origin: {origin} and redirect_uri: {effective_redirect}")
+    logger.info(f"Generated OAuth URL with redirect_uri: {effective_redirect}")
     
     return {"url": auth_url}
 
