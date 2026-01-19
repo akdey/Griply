@@ -104,6 +104,14 @@ body {
   .btn-premium {
     @apply relative overflow-hidden active:scale-95 transition-all duration-200;
   }
+
+  .glass-button {
+    @apply relative overflow-hidden px-8 py-4.5 rounded-[1.5rem] bg-indigo-500 text-white font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all shadow-xl border border-indigo-400/20 hover:bg-indigo-600;
+  }
+
+  .glass-button.secondary {
+    @apply bg-white/[0.03] border-white/[0.08] text-gray-400 hover:bg-white/[0.05] hover:text-white;
+  }
 }
 
 @keyframes premium-spin {

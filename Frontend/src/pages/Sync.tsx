@@ -59,26 +59,28 @@ const Sync: React.FC = () => {
                 <h1 className="text-3xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-400 mb-2">
                     Gmail Sync
                 </h1>
-                <p className="text-sm text-gray-400">
+                {/* <p className="text-sm text-gray-400">
                     Automatically import transactions from your email
-                </p>
+                </p> */}
             </header>
 
             <div className="px-5 space-y-6">
                 {/* Connection Status Card */}
                 {!status?.connected ? (
-                    <Card className="p-8 space-y-6 bg-gradient-to-br from-indigo-500/5 to-cyan-500/5 border-indigo-500/20">
-                        <div className="text-center space-y-4">
-                            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-indigo-500/10 text-indigo-400">
-                                <Mail size={40} />
+                    <Card className="p-10 space-y-10 bg-gradient-to-br from-indigo-500/5 via-cyan-500/5 to-transparent border-indigo-500/10 relative overflow-hidden">
+                        <div className="absolute -right-20 -top-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl opacity-50" />
+
+                        <div className="relative z-10 text-center space-y-8">
+                            <div className="inline-flex items-center justify-center w-24 h-24 rounded-[2.5rem] bg-indigo-500/10 text-indigo-400 border border-indigo-500/10 shadow-inner group">
+                                <Mail size={42} strokeWidth={1.5} className="group-hover:scale-110 transition-transform duration-500" />
                             </div>
 
                             <div>
-                                <h2 className="text-2xl font-bold text-white mb-2">
-                                    Connect Your Gmail
+                                <h2 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
+                                    Sync Intelligence
                                 </h2>
-                                <p className="text-gray-400 text-sm max-w-md mx-auto">
-                                    Automatically track expenses from bank alerts, credit card statements, and transaction emails.
+                                <p className="text-gray-500 text-[10px] font-black uppercase tracking-[3px] max-w-xs mx-auto leading-relaxed opacity-60">
+                                    Autopilot for transaction tracking.
                                 </p>
                             </div>
 
@@ -110,9 +112,9 @@ const Sync: React.FC = () => {
                                 onClick={handleConnect}
                                 isLoading={connectMutation.isPending}
                                 className="w-full max-w-md"
-                                icon={<Mail size={20} />}
+                                icon={<Mail size={20} className="shrink-0" />}
                             >
-                                Connect Gmail
+                                Continue with Gmail
                             </Button>
 
                             {connectMutation.isError && (
@@ -205,8 +207,8 @@ const Sync: React.FC = () => {
                                         >
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-2 h-2 rounded-full ${sync.status === 'SUCCESS' ? 'bg-green-400' :
-                                                        sync.status === 'FAILED' ? 'bg-red-400' :
-                                                            'bg-yellow-400'
+                                                    sync.status === 'FAILED' ? 'bg-red-400' :
+                                                        'bg-yellow-400'
                                                     }`} />
 
                                                 <div>

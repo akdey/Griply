@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Grip"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = "local"
+    APP_TIMEZONE: str = "Asia/Kolkata"  # Default to IST
     
     DATABASE_URL: str = ""
     

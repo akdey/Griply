@@ -1,13 +1,17 @@
 import logging
 from uuid import UUID
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+import zoneinfo
 from decimal import Decimal
 from typing import List, Optional
 from calendar import monthrange
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from app.core.config import get_settings
 from app.features.bills.models import Bill
 from app.features.bills.schemas import BillCreate, BillUpdate
+
+settings = get_settings()
 # Constants
 
 logger = logging.getLogger(__name__)
@@ -28,6 +32,12 @@ SURETY_CATEGORIES = {
 
 
 class BillService:
+    def __init__(self):
+        self._tz = zoneinfo.ZoneInfo(settings.APP_TIMEZONE)
+
+    def _get_today(self) -> date:
+        """Get current date in the configured timezone."""
+        return datetime.now(self._tz).date()
     
     async def create_bill(
         self,
@@ -125,7 +135,7 @@ class BillService:
         days_ahead: int = 30
     ) -> List[Bill]:
         """Get unpaid bills due within the next X days."""
-        today = date.today()
+        today = self._get_today()
         threshold_date = today + timedelta(days=days_ahead)
         
         stmt = (
@@ -166,7 +176,7 @@ class BillService:
         Calculate projected surety bills (recurring predictable bills).
         This includes recurring bills that will be due in the next X days.
         """
-        today = date.today()
+        today = self._get_today()
         threshold_date = today + timedelta(days=days_ahead)
         
         # Get all recurring surety bills

@@ -26,7 +26,12 @@ from app.utils.finance_utils import (
     get_year_date_range
 )
 
+from datetime import datetime, date, timedelta
+import zoneinfo
+from app.core.config import get_settings
+
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
 
 class AnalyticsService:
@@ -34,6 +39,11 @@ class AnalyticsService:
     def __init__(self):
         self.bill_service = BillService()
         self.cc_service = CreditCardService()
+        self._tz = zoneinfo.ZoneInfo(settings.APP_TIMEZONE)
+
+    def _get_today(self) -> date:
+        """Get current date in the configured timezone."""
+        return datetime.now(self._tz).date()
     
     async def get_variance_analysis(
         self,
@@ -43,8 +53,7 @@ class AnalyticsService:
         year: Optional[int] = None
     ) -> VarianceAnalysis:
         """Calculate period vs previous period variance."""
-        from datetime import date
-        target_date = date.today()
+        target_date = self._get_today()
         if month and year:
             target_date = date(year, month, 1)
             
@@ -175,10 +184,8 @@ class AnalyticsService:
     ) -> SafeToSpendResponse:
         """Calculate safe-to-spend amount with frozen funds and AI-predicted buffer till salary."""
         try:
-            from datetime import date, timedelta
-            
             # Calculate days till salary (1st of next month)
-            today = date.today()
+            today = self._get_today()
             if today.day == 1:
                 # If today is 1st, assume salary already received, buffer till next month's 1st
                 days_till_salary = 30  # Approximate
@@ -210,7 +217,7 @@ class AnalyticsService:
             
             # Calculate buffer using simple average of discretionary spending
             # Get discretionary expenses from last 30 days
-            today_date = date.today()
+            today_date = self._get_today()
             thirty_days_ago = today_date - timedelta(days=30)
             
             discretionary_stmt = (
@@ -308,9 +315,7 @@ class AnalyticsService:
 
     async def debug_buffer_Calculation(self, db: AsyncSession, user_id: UUID):
         """Debug method to show WHAT is being included in buffer calculation."""
-        from datetime import date, timedelta
-        
-        today_date = date.today()
+        today_date = self._get_today()
         thirty_days_ago = today_date - timedelta(days=30)
         
         # EXACT SAME logic as calculation
@@ -356,9 +361,8 @@ class AnalyticsService:
         scope: str = "month"
     ) -> MonthlySummaryResponse:
         import datetime
-        from datetime import date
         
-        target_date = date.today()
+        target_date = self._get_today()
         if month and year:
             target_date = date(year, month, 1)
         

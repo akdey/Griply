@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Grip"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = "local"
+    APP_TIMEZONE: str = "Asia/Kolkata"  # Default to IST
     
     DATABASE_URL: str = ""
     
@@ -30,7 +31,7 @@ class Settings(BaseSettings):
     GROQ_MODEL: str = "llama3-8b-8192"
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
-    FRONTEND_ORIGIN: str = ""  # Frontend URL for OAuth origin parameter
+    FRONTEND_ORIGIN: str = "http://localhost:5173"  # Frontend URL for OAuth origin parameter
     GOOGLE_REDIRECT_URI: str = "postmessage"
     
     # Email Settings

@@ -22,12 +22,12 @@ export const Button: React.FC<ButtonProps> = ({
 
     return (
         <button
-            className={`${baseClass} ${variantClass} ${className} ${disabled || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`${baseClass} ${variantClass} ${className} ${disabled || isLoading ? 'opacity-50 cursor-not-allowed' : ''} flex items-center justify-center gap-3`}
             disabled={disabled || isLoading}
             {...props}
         >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : icon}
-            {children}
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : icon}
+            <span className="font-black uppercase tracking-widest text-[11px]">{children}</span>
         </button>
     );
 };

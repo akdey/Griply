@@ -1,7 +1,16 @@
 from decimal import Decimal
 from datetime import date, datetime, timedelta
+import zoneinfo
 from calendar import monthrange
 from typing import Dict, Optional
+from app.core.config import get_settings
+
+
+def get_current_date() -> date:
+    """Get the current date in the configured timezone."""
+    settings = get_settings()
+    tz = zoneinfo.ZoneInfo(settings.APP_TIMEZONE)
+    return datetime.now(tz).date()
 
 
 def calculate_frozen_funds(
@@ -63,7 +72,7 @@ def get_billing_cycle_dates(
         Dictionary with cycle_start, cycle_end, next_statement_date
     """
     if reference_date is None:
-        reference_date = date.today()
+        reference_date = get_current_date()
     
     # Determine current or next statement date
     current_month_statement = date(
@@ -162,7 +171,7 @@ def get_month_date_range(reference_date: Optional[date] = None) -> Dict[str, dat
         Dictionary with month_start and month_end
     """
     if reference_date is None:
-        reference_date = date.today()
+        reference_date = get_current_date()
     
     month_start = date(reference_date.year, reference_date.month, 1)
     last_day = monthrange(reference_date.year, reference_date.month)[1]
@@ -185,7 +194,7 @@ def get_previous_month_date_range(reference_date: Optional[date] = None) -> Dict
         Dictionary with month_start and month_end
     """
     if reference_date is None:
-        reference_date = date.today()
+        reference_date = get_current_date()
     
     if reference_date.month == 1:
         prev_month = 12
@@ -215,7 +224,7 @@ def get_year_date_range(reference_date: Optional[date] = None) -> Dict[str, date
         Dictionary with year_start and year_end
     """
     if reference_date is None:
-        reference_date = date.today()
+        reference_date = get_current_date()
     
     year_start = date(reference_date.year, 1, 1)
     year_end = date(reference_date.year, 12, 31)
