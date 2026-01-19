@@ -62,7 +62,7 @@ Grip processes your financial data through a sophisticated, privacy-preserving p
 └────────────────────────┬────────────────────────────────────────┘
                          ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│ 3. AI EXTRACTION (Groq Llama 3)                                 │
+│ 3. AI EXTRACTION (Groq Llama 3.3)                               │
 │    Natural Language → Structured JSON                           │
 │    "Rs 1,250 debited from Card ending 4521 at Swiggy"          │
 │    ↓                                                             │
@@ -453,7 +453,7 @@ Masked:   "UPI: ****@paytm paid ****@phonepe"
 - **Framework**: FastAPI (Python 3.11+) - High-performance async API
 - **Database**: PostgreSQL with SQLAlchemy (async) + asyncpg
 - **AI/ML**:
-  - **Groq** (Llama 3 70B/8B) - Transaction extraction & forecasting
+  - **Groq** (Llama 3.3 70B) - Transaction extraction & forecasting
   - **Meta Prophet** - Statistical time-series forecasting
 - **Authentication**: JWT + bcrypt
 - **Email**: SMTP for OTP delivery
@@ -517,7 +517,7 @@ GRIP_SECRET=webhook-secret
 
 # AI
 GROQ_API_KEY=your-groq-api-key
-GROQ_MODEL=llama3-8b-8192
+GROQ_MODEL=llama-3.3-70b-versatile
 USE_AI_FORECASTING=true
 
 # Gmail OAuth (for email sync)
