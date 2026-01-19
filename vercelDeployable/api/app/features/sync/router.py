@@ -34,7 +34,20 @@ def get_google_flow(redirect_uri: str = "postmessage"):
 @router.get("/google/auth")
 async def google_auth(current_user: Annotated[User, Depends(get_current_user)]):
     flow = get_google_flow()
-    auth_url, _ = flow.authorization_url(access_type='offline', prompt='consent')
+    # Include origin parameter to match Authorized JavaScript Origins in Google Console
+    auth_url, _ = flow.authorization_url(
+        access_type='offline',
+        prompt='consent',
+        include_granted_scopes='true'
+    )
+    
+    # Add origin parameter manually to the URL
+    # This must match the value in "Authorized JavaScript Origins" in Google Console
+    if '?' in auth_url:
+        auth_url += f'&origin={settings.FRONTEND_ORIGIN}'
+    else:
+        auth_url += f'?origin={settings.FRONTEND_ORIGIN}'
+    
     return {"url": auth_url}
 
 @router.post("/google/callback")
