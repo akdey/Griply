@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 // Transactions Page
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useTransactions } from '../features/transactions/hooks';
+import { useTransactions, usePendingTransactions } from '../features/transactions/hooks';
 import { useCategories } from '../features/transactions/categoryHooks';
 import {
     Receipt,
@@ -86,6 +86,7 @@ const Transactions: React.FC = () => {
 
     // Fetch Data
     const { data: transactions, isLoading } = useTransactions(queryFilters);
+    const { data: pendingTransactions } = usePendingTransactions();
 
     const applyFilters = () => {
         const params: any = { view: 'custom' };
@@ -195,6 +196,26 @@ const Transactions: React.FC = () => {
                     </button>
                 </div>
             </header>
+
+            {pendingTransactions && pendingTransactions.length > 0 && (
+                <div className="px-4 pt-6 pb-2 animate-enter space-y-4">
+                    <div className="px-2 flex items-center justify-between">
+                        <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                            Pending Review
+                        </p>
+                        <span className="text-[9px] font-bold text-amber-500/60 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/10">
+                            {pendingTransactions.length} ITEMS
+                        </span>
+                    </div>
+                    <div className="space-y-3">
+                        {pendingTransactions.map(txn => (
+                            <TransactionItem key={txn.id} txn={{ ...txn, status: 'PENDING' }} formatCurrency={formatCurrency} />
+                        ))}
+                    </div>
+                    <div className="h-px w-full bg-white/[0.05] mx-2" />
+                </div>
+            )}
 
             <div className="px-4 py-6 space-y-6 animate-enter">
                 {view === 'month' ? (

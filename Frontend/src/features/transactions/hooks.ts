@@ -102,3 +102,13 @@ export const useTransaction = (id?: string) => {
         enabled: !!id
     });
 };
+
+export const usePendingTransactions = () => {
+    return useQuery({
+        queryKey: ['transactions', 'pending'],
+        queryFn: async () => {
+            const { data } = await api.get<Transaction[]>('/transactions/pending');
+            return data;
+        },
+    });
+};
