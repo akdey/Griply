@@ -30,9 +30,9 @@ try:
                 "application_name": "grip_backend"
             },
         }
-        # Only enforce SSL if we are NOT in a local environment
-        # This prevents connection issues with local DBs or internal Render URLs that might stall on SSL
-        if settings.ENVIRONMENT != "local":
+        # Only enforce SSL if we are NOT in a local environment OR if we detect a Render database URL
+        # This prevents connection timeouts on Render (which needs SSL) while keeping it off for localhost
+        if settings.ENVIRONMENT != "local" or "render.com" in db_url or "dpg-" in db_url:
             connect_args["ssl"] = ssl_context
 
     engine = create_async_engine(
