@@ -27,6 +27,8 @@ try:
         connect_args = {
             "statement_cache_size": 0,
             "server_settings": {
+                "application_name": "grip_backend"
+            },
         }
         
         # Robust SSL/Connection Logic
