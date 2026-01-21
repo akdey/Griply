@@ -13,11 +13,9 @@ if not db_url:
     print("WARNING: DATABASE_URL not set. Using in-memory SQLite for startup safety.")
     db_url = "sqlite+aiosqlite:///:memory:"
 
-# Create a custom SSL context that ignores certificate verification
-# This is often needed for cloud databases (Render, Neon, etc.) where certs might be self-signed or internal
-ssl_context = ssl.create_default_context()
-ssl_context.check_hostname = False
-ssl_context.verify_mode = ssl.CERT_NONE
+# For Supabase pooler (PgBouncer), we need to use 'require' mode instead of custom SSL context
+# This avoids certificate verification issues while still using SSL
+# We'll set this via connection parameters instead of a custom context
 
 try:
     connect_args = {}
@@ -44,16 +42,23 @@ try:
         if is_cloud_db or (settings.ENVIRONMENT != "local" and not is_local):
             use_ssl = True
 
-        # Supabase Specific Check for Port 5432 (IPv4 Deprecation issue on Free Tier)
-        if "supabase" in url_str and ":5432" in url_str:
-            print("WARNING: Detected Supabase usage on Port 5432.")
-            print("   -> If you are on the Supabase Free Tier, direct IPv4 connections to port 5432 might be blocked.")
-            print("   -> Render uses IPv4. If you experience timeouts, switch to the Transaction Pooler (Port 6543).")
-
-        if use_ssl:
+        # Supabase Specific Configuration
+        if "supabase" in url_str:
+            if ":5432" in url_str:
+                print("WARNING: Detected Supabase usage on Port 5432.")
+                print("   -> If you are on the Supabase Free Tier, direct IPv4 connections to port 5432 might be blocked.")
+                print("   -> Render uses IPv4. Switch to the Transaction Pooler (Port 6543).")
+            
+            # For Supabase pooler, use 'require' mode which enables SSL without strict certificate verification
+            # This is the recommended approach for Supabase with asyncpg
+            print(f"DATABASE: Configuring SSL for Supabase pooler (sslmode=require)")
+            connect_args["ssl"] = "require"
+        elif use_ssl:
             print(f"DATABASE: Enforcing SSL for {settings.ENVIRONMENT} (Target: Cloud/Remote)")
-            # Create a permissive SSL context associated with the context settings
-            # This is critical for avoiding hostname mismatches on some cloud load balancers
+            # For other cloud providers, use a permissive SSL context
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
             connect_args["ssl"] = ssl_context
         else:
             print(f"DATABASE: SSL Disabled for {settings.ENVIRONMENT} (Target: Local/Dev)")
