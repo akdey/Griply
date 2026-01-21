@@ -4,6 +4,8 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
+import ssl
+
 # Handle potential missing DATABASE_URL for build/test environments
 db_url = settings.ASYNC_DATABASE_URL
 if not db_url:
@@ -11,20 +13,35 @@ if not db_url:
     print("WARNING: DATABASE_URL not set. Using in-memory SQLite for startup safety.")
     db_url = "sqlite+aiosqlite:///:memory:"
 
+# Create a custom SSL context that ignores certificate verification
+# This is often needed for cloud databases (Render, Neon, etc.) where certs might be self-signed or internal
+ssl_context = ssl.create_default_context()
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
+
 try:
-    engine = create_async_engine(
-        db_url, 
-        echo=False,
-        pool_pre_ping=True,
-        pool_recycle=300,
-        pool_size=5,
-        max_overflow=10,
-        connect_args={"check_same_thread": False} if "sqlite" in db_url else {
+    connect_args = {}
+    if "sqlite" in db_url:
+        connect_args = {"check_same_thread": False}
+    else:
+        connect_args = {
             "statement_cache_size": 0,
             "server_settings": {
                 "application_name": "grip_backend"
-            }
+            },
+            # Force SSL with no verification for interactions with cloud DBs to prevent hangs
+            "ssl": ssl_context 
         }
+
+    engine = create_async_engine(
+        db_url, 
+        echo=False,
+        # pool_pre_ping=True can cause timeouts if latency is high, trying False for robustness
+        pool_pre_ping=False, 
+        pool_recycle=300, 
+        pool_size=3, # Reduced for free tier compatibility
+        max_overflow=5,
+        connect_args=connect_args
     )
 except Exception as e:
     print(f"CRITICAL: Failed to create database engine: {e}")
