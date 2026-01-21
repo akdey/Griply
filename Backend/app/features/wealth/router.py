@@ -114,4 +114,13 @@ async def simulate_investment(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.get("/search-mutual-funds")
+async def search_mutual_funds(
+    q: str,
+    current_user: User = Depends(get_current_user),
+    service: WealthService = Depends()
+):
+    """Search mutual funds by name."""
+    return await service.search_mutual_funds(q)
+
 

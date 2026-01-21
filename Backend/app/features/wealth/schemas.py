@@ -159,6 +159,12 @@ class SimulateInvestmentRequest(BaseModel):
     scheme_code: str
     amount: float
     date: date
+    
+    @field_validator('scheme_code', mode='before')
+    @classmethod
+    def convert_to_string(cls, v):
+        if v is None: return ""
+        return str(v)
 
 class SimulateInvestmentResponse(BaseModel):
     scheme_code: str

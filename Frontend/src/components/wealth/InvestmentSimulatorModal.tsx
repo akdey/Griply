@@ -55,8 +55,8 @@ export const InvestmentSimulatorModal: React.FC<InvestmentSimulatorModalProps> =
         setStep(2); // Loading
         try {
             const res = await api.post('/wealth/simulate', {
-                scheme_code: formData.schemeCode,
-                amount: parseFloat(formData.amount),
+                scheme_code: String(formData.schemeCode),
+                amount: parseFloat(formData.amount) || 0,
                 date: formData.date
             });
             setResult(res.data);

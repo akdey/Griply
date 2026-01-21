@@ -255,6 +255,22 @@ class WealthService:
         # Fallback: Use latest if today, else error.
         raise ValueError(f"No NAV found for date {target_str}")
 
+    async def search_mutual_funds(self, query: str) -> List[dict]:
+        """Search mutual funds by name using MFAPI.in"""
+        if len(query) < 3:
+            return []
+        
+        url = f"https://api.mfapi.in/mf/search?q={query}"
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url, timeout=10.0)
+                if resp.status_code == 200:
+                    return resp.json()
+                return []
+            except Exception as e:
+                logger.error(f"MFAPI search failed: {e}")
+                return []
+
     async def fetch_price_yfinance(self, ticker: str, target_date: Optional[date] = None) -> float:
         if not yf:
             raise ValueError("yfinance library missing")

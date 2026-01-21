@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
+    BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
 import {
-    Search, Calendar, DollarSign, ArrowRight, TrendingUp, AlertCircle, CheckCircle2
+    Search, Calendar, DollarSign, TrendingUp, AlertCircle, CheckCircle2
 } from 'lucide-react';
 
 interface Holding {
@@ -18,8 +18,8 @@ const WealthIntelligence: React.FC<{ holdings: Holding[] }> = ({ holdings }) => 
     const [activeTab, setActiveTab] = useState<'timing' | 'simulator'>('timing');
 
     return (
-        <div className="bg-[#0A0A0A] border border-white/5 rounded-2xl p-6 min-h-[500px]">
-            <div className="flex space-x-6 border-b border-white/5 pb-4 mb-6">
+        <div className="bg-[#0A0A0A] border border-white/5 rounded-2xl p-4 sm:p-6 min-h-[500px]">
+            <div className="flex space-x-6 border-b border-white/5 pb-4 mb-6 overflow-x-auto scrollbar-hide">
                 <button
                     onClick={() => setActiveTab('timing')}
                     className={`pb-2 text-sm font-medium transition-colors relative ${activeTab === 'timing' ? 'text-emerald-400' : 'text-gray-400 hover:text-gray-300'
@@ -92,7 +92,7 @@ const TimingAlpha: React.FC<{ holdings: Holding[] }> = ({ holdings }) => {
 
     return (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                 <div>
                     <h3 className="text-lg font-semibold text-gray-200">SIP Timing Analysis</h3>
                     <p className="text-xs text-gray-500">Discover how your SIP date affects returns</p>
@@ -126,7 +126,7 @@ const TimingAlpha: React.FC<{ holdings: Holding[] }> = ({ holdings }) => {
                     </div>
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="bg-white/5 rounded-xl p-4 border border-white/5">
                             <p className="text-xs text-gray-500 uppercase">Your Date</p>
                             <p className="text-xl font-bold mt-1 text-white">{analysis.user_sip_date}<span className="text-xs font-normal text-gray-500 align-top">th</span></p>
@@ -195,19 +195,57 @@ const InvestmentSimulator: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
+
+    useEffect(() => {
+        if (!searchQuery || searchQuery.length < 3) {
+            setSearchResults([]);
+            return;
+        }
+
+        const handler = setTimeout(async () => {
+            setIsSearching(true);
+            try {
+                const res = await api.get('/wealth/search-mutual-funds', {
+                    params: { q: searchQuery }
+                });
+                setSearchResults(res.data);
+                setShowDropdown(true);
+            } catch (err) {
+                console.error("Search failed", err);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(handler);
+    }, [searchQuery]);
+
+    const handleSelectScheme = (s: any) => {
+        setScheme(s.schemeCode);
+        setSearchQuery(s.schemeName);
+        setShowDropdown(false);
+    };
+
     const handleSimulate = async () => {
-        if (!scheme || !date || !amount) return;
+        if (!scheme || !date || !amount) {
+            setError('Please fill all fields and select a fund from search.');
+            return;
+        }
         setLoading(true);
         setError('');
         try {
             const res = await api.post('/wealth/simulate', {
-                scheme_code: scheme,
+                scheme_code: String(scheme),
                 amount: Number(amount),
                 date: date
             });
             setResult(res.data);
         } catch (err) {
-            setError('Simulation failed. Check Scheme Code (MFAPI ID) and Date.');
+            setError('Simulation failed. Check Scheme and Date.');
         } finally {
             setLoading(false);
         }
@@ -221,18 +259,38 @@ const InvestmentSimulator: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                    <label className="text-xs text-gray-500 uppercase">Scheme Code (MFAPI)</label>
-                    <div className="bg-white/5 border border-white/10 rounded-lg flex items-center px-3 py-2">
+                <div className="space-y-2 relative">
+                    <label className="text-xs text-gray-500 uppercase">Search Mutual Fund</label>
+                    <div className={`bg-white/5 border rounded-lg flex items-center px-3 py-2 transition-colors ${showDropdown ? 'border-emerald-500/50' : 'border-white/10'}`}>
                         <Search size={16} className="text-gray-500 mr-2" />
                         <input
                             type="text"
-                            value={scheme}
-                            onChange={(e) => setScheme(e.target.value)}
-                            placeholder="e.g. 120503"
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setScheme(''); // Reset code when typing
+                            }}
+                            onFocus={() => searchQuery.length >= 3 && setShowDropdown(true)}
+                            placeholder="e.g. HDFC Index Fund"
                             className="bg-transparent outline-none w-full text-sm placeholder-gray-600"
                         />
+                        {isSearching && <div className="w-3 h-3 border-b-2 border-emerald-500 rounded-full animate-spin ml-2" />}
                     </div>
+
+                    {showDropdown && searchResults.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-[#111] border border-white/10 rounded-xl overflow-hidden z-[60] shadow-2xl max-h-[250px] overflow-y-auto custom-scrollbar">
+                            {searchResults.map((s) => (
+                                <button
+                                    key={s.schemeCode}
+                                    onClick={() => handleSelectScheme(s)}
+                                    className="w-full text-left px-4 py-3 hover:bg-emerald-500/10 transition-colors border-b border-white/5 last:border-0"
+                                >
+                                    <p className="text-sm font-medium text-gray-200 line-clamp-1">{s.schemeName}</p>
+                                    <p className="text-[10px] text-gray-500 mt-0.5">Code: {s.schemeCode}</p>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
                 <div className="space-y-2">
                     <label className="text-xs text-gray-500 uppercase">Investment Date</label>
@@ -263,29 +321,32 @@ const InvestmentSimulator: React.FC = () => {
             <button
                 onClick={handleSimulate}
                 disabled={loading}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-medium transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 active:scale-[0.98]"
             >
                 {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Calculate Returns"}
             </button>
 
-            {error && <div className="p-3 bg-red-500/10 text-red-500 text-sm rounded-lg flex items-center gap-2"><AlertCircle size={16} /> {error}</div>}
+            {error && <div className="p-3 bg-red-500/10 text-red-500 text-sm rounded-lg flex items-center gap-2 border border-red-500/20"><AlertCircle size={16} /> {error}</div>}
 
             {result && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 rounded-xl p-6 mt-4">
-                    <div className="grid grid-cols-2 gap-8">
+                <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="bg-gradient-to-br from-gray-900 to-[#050505] border border-white/10 rounded-2xl p-6 mt-4 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-[50px] rounded-full -mr-16 -mt-16" />
+
+                    <div className="flex flex-col sm:flex-row justify-between gap-6 relative z-10">
                         <div>
-                            <p className="text-gray-500 text-sm">Invested Value</p>
-                            <h3 className="text-2xl font-bold text-gray-300 mt-1">₹{result.invested_amount.toLocaleString()}</h3>
-                            <p className="text-xs text-gray-500 mt-1">on {new Date(result.invested_date).toLocaleDateString()}</p>
+                            <p className="text-gray-500 text-xs uppercase tracking-wider font-semibold">Invested Value</p>
+                            <h3 className="text-2xl font-bold text-gray-200 mt-1">₹{result.invested_amount.toLocaleString()}</h3>
+                            <p className="text-xs text-gray-500 mt-1 bg-white/5 w-fit px-2 py-0.5 rounded border border-white/5">on {new Date(result.invested_date).toLocaleDateString()}</p>
                         </div>
-                        <div className="text-right">
-                            <p className="text-gray-500 text-sm">Current Value</p>
-                            <h3 className={`text-3xl font-bold mt-1 ${result.absolute_return >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        <div className="sm:text-right">
+                            <p className="text-gray-500 text-xs uppercase tracking-wider font-semibold">Current Value</p>
+                            <h3 className={`text-4xl font-bold mt-1 ${result.absolute_return >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                                 ₹{result.current_value.toLocaleString()}
                             </h3>
-                            <p className={`text-sm font-medium mt-1 ${result.absolute_return >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                            <div className={`inline-flex items-center gap-1.5 mt-2 px-2 py-1 rounded-lg text-sm font-bold ${result.absolute_return >= 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+                                {result.absolute_return >= 0 ? <TrendingUp size={16} /> : <TrendingUp size={16} className="rotate-180" />}
                                 {result.absolute_return >= 0 ? "+" : ""}{result.return_percentage.toFixed(2)}%
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </motion.div>

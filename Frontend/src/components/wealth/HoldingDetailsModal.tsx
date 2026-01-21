@@ -1,7 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, TrendingUp, TrendingDown, Calendar, DollarSign } from 'lucide-react';
+import { X, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { SIPDateAnalysis } from './SIPDateAnalysis';
 
@@ -14,14 +14,9 @@ interface HoldingDetailsModalProps {
 export const HoldingDetailsModal: React.FC<HoldingDetailsModalProps> = ({ isOpen, onClose, holding }) => {
     const [activeTab, setActiveTab] = useState<'performance' | 'sip-analysis'>('performance');
 
-    if (!holding) return null;
-
-    // Check if holding has SIP data
-    const hasSIPData = holding.snapshots?.some((s: any) => s.is_sip);
-
     // Process snapshots for chart
     const chartData = useMemo(() => {
-        if (!holding.snapshots) return [];
+        if (!holding?.snapshots) return [];
         return holding.snapshots.map((s: any) => ({
             date: new Date(s.captured_at).toLocaleDateString([], { month: 'short', day: 'numeric' }),
             value: s.total_value,
@@ -29,6 +24,11 @@ export const HoldingDetailsModal: React.FC<HoldingDetailsModalProps> = ({ isOpen
             price: s.price_per_unit
         })).sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }, [holding]);
+
+    if (!holding) return null;
+
+    // Check if holding has SIP data
+    const hasSIPData = holding.snapshots?.some((s: any) => s.is_sip);
 
     const formatCurrency = (val: number) =>
         new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
@@ -48,15 +48,15 @@ export const HoldingDetailsModal: React.FC<HoldingDetailsModalProps> = ({ isOpen
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="fixed top-[5%] left-[5%] right-[5%] bottom-[5%] md:top-[10%] md:left-[15%] md:right-[15%] md:bottom-[10%] bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 z-50 flex flex-col overflow-hidden shadow-2xl"
+                        className="fixed top-0 left-0 right-0 bottom-0 sm:top-[5%] sm:left-[5%] sm:right-[5%] sm:bottom-[5%] md:top-[10%] md:left-[15%] md:right-[15%] md:bottom-[10%] bg-[#0A0A0A] border border-white/10 sm:rounded-2xl p-4 sm:p-6 z-50 flex flex-col overflow-hidden shadow-2xl"
                     >
                         {/* Header */}
-                        <div className="flex justify-between items-start mb-6">
+                        <div className="flex justify-between items-start mb-4 sm:mb-6">
                             <div>
-                                <h2 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent">
+                                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent line-clamp-2">
                                     {holding.name}
                                 </h2>
-                                <div className="flex items-center gap-2 mt-1 text-sm text-gray-400">
+                                <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm text-gray-400">
                                     <span className="bg-white/5 px-2 py-0.5 rounded text-xs border border-white/5">{holding.asset_type}</span>
                                     {holding.ticker_symbol && <span>• {holding.ticker_symbol}</span>}
                                 </div>
@@ -75,8 +75,8 @@ export const HoldingDetailsModal: React.FC<HoldingDetailsModalProps> = ({ isOpen
                                 <button
                                     onClick={() => setActiveTab('performance')}
                                     className={`px-4 py-2 text-sm font-medium transition-colors relative ${activeTab === 'performance'
-                                            ? 'text-emerald-400'
-                                            : 'text-gray-500 hover:text-gray-300'
+                                        ? 'text-emerald-400'
+                                        : 'text-gray-500 hover:text-gray-300'
                                         }`}
                                 >
                                     Performance
@@ -90,8 +90,8 @@ export const HoldingDetailsModal: React.FC<HoldingDetailsModalProps> = ({ isOpen
                                 <button
                                     onClick={() => setActiveTab('sip-analysis')}
                                     className={`px-4 py-2 text-sm font-medium transition-colors relative ${activeTab === 'sip-analysis'
-                                            ? 'text-emerald-400'
-                                            : 'text-gray-500 hover:text-gray-300'
+                                        ? 'text-emerald-400'
+                                        : 'text-gray-500 hover:text-gray-300'
                                         }`}
                                 >
                                     SIP Date Analysis
@@ -134,7 +134,7 @@ export const HoldingDetailsModal: React.FC<HoldingDetailsModalProps> = ({ isOpen
                                     </div>
 
                                     {/* Chart */}
-                                    <div className="bg-[#050505] rounded-xl border border-white/5 p-4 h-[300px]">
+                                    <div className="bg-[#050505] rounded-xl border border-white/5 p-4 h-[250px] sm:h-[300px]">
                                         <h3 className="text-sm font-medium text-gray-400 mb-4 flex items-center gap-2">
                                             <TrendingUp size={16} /> Performance History
                                         </h3>
@@ -151,7 +151,7 @@ export const HoldingDetailsModal: React.FC<HoldingDetailsModalProps> = ({ isOpen
                                                 <YAxis stroke="#444" tick={{ fontSize: 10 }} tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`} />
                                                 <Tooltip
                                                     contentStyle={{ backgroundColor: '#111', borderColor: '#333', borderRadius: '8px', fontSize: '12px' }}
-                                                    formatter={(val: number) => formatCurrency(val)}
+                                                    formatter={(val: any) => formatCurrency(Number(val))}
                                                 />
                                                 <Area
                                                     type="monotone"
