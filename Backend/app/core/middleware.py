@@ -2,11 +2,7 @@ from fastapi import Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 from jose import jwt, JWTError
-from sqlalchemy import select
 from app.core.config import get_settings
-from app.core.database import AsyncSessionLocal
-from app.features.auth.models import User
-from app.features.auth.schemas import TokenData
 
 settings = get_settings()
 import logging
@@ -31,13 +27,12 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         
         token = auth_header.split(" ")[1]
         
-        # 3. Validate Token & User
+        # 3. Validate Token
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
             email: str = payload.get("sub")
             if email is None:
                 raise JWTError
-            token_data = TokenData(email=email)
         except JWTError:
             logger.warning(f"Authentication failed: Invalid token for path {path}")
             return JSONResponse(
@@ -45,35 +40,11 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
                 content={"detail": "Could not validate credentials"}
             )
             
-        # 4. DB Lookup (Scoped Session with retry)
-        max_retries = 2
-        for attempt in range(max_retries):
-            try:
-                async with AsyncSessionLocal() as session:
-                    result = await session.execute(select(User).where(User.email == token_data.email))
-                    user = result.scalar_one_or_none()
-                    
-                    if not user:
-                        logger.warning(f"Authentication failed: User {token_data.email} not found")
-                        return JSONResponse(
-                            status_code=status.HTTP_401_UNAUTHORIZED,
-                            content={"detail": "User not found"}
-                        )
-                    
-                    # Attach user to request state
-                    request.state.user = user
-                    logger.debug(f"User {user.email} authenticated successfully for {path}")
-                    break
-            except Exception as db_error:
-                if attempt < max_retries - 1:
-                    logger.warning(f"Database connection error (attempt {attempt + 1}/{max_retries}): {db_error}")
-                    continue
-                else:
-                    logger.error(f"Database connection failed after {max_retries} attempts: {db_error}")
-                    return JSONResponse(
-                        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                        content={"detail": "Database temporarily unavailable. Please try again."}
-                    )
+        # 4. Stateless Authentication
+        # We trust the token signature. We do NOT hit the DB here.
+        # Downstream dependencies (get_current_user) will fetch the full user object if needed.
+        request.state.user_email = email
+        # logger.debug(f"Token valid for {email}, proceeding statelessly for {path}")
         
         # 5. Process request
         try:
