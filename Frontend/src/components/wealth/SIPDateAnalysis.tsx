@@ -82,7 +82,7 @@ export const SIPDateAnalysis: React.FC<SIPDateAnalysisProps> = ({ holdingId }) =
 
     if (!analysis) return null;
 
-    const alternativeDates = [1, 5, 10, 15, 20, 25];
+    const alternativeDates = Array.from({ length: 28 }, (_, i) => i + 1);
 
     return (
         <div className="space-y-6">
