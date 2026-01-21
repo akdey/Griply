@@ -700,35 +700,213 @@ GET /api/v1/dashboard/forecast  # 30-day AI prediction
 
 ## 🚀 Deployment
 
-### Render (Recommended for Backend)
+### Production Setup (Recommended)
 
-**Backend:**
+**Architecture:**
+- **Frontend**: Vercel (Free, unlimited bandwidth)
+- **Backend**: Railway (Serverless, $5/month credit)
+- **Database**: Supabase (Free tier, 500MB)
+- **Scheduled Tasks**: GitHub Actions (Free unlimited for public repos)
+
+**Total Cost: $0/month** (everything within free tiers!)
+
+---
+
+### Backend Deployment (Railway)
+
+#### 1. Initial Setup
+
+1. **Sign up at [railway.app](https://railway.app)** with GitHub
+2. **Create New Project** → Deploy from GitHub repo
+3. **Select your repository**
+4. **Configure Service:**
+   - Root Directory: `Backend`
+   - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - Watch Paths: `Backend/**`
+
+#### 2. Environment Variables
+
+Add these in Railway Dashboard → Variables:
+
 ```bash
-cd Backend
-# Connect to Render via GitHub
-# Add environment variables in Render dashboard
-# Deploy automatically on push
+# Database
+DATABASE_URL=postgresql://postgres.[ref]:[password]@aws-1-ap-south-1.pooler.supabase.com:6543/postgres
+
+# Security
+SECRET_KEY=your-secret-key-here
+GRIP_SECRET=webhook-secret
+ENVIRONMENT=production
+
+# AI
+GROQ_API_KEY=your-groq-api-key
+GROQ_MODEL=llama-3.3-70b-versatile
+USE_AI_FORECASTING=true
+ENABLE_SCHEDULER=false  # Using GitHub Actions for scheduled tasks
+
+# Gmail OAuth
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+FRONTEND_ORIGIN=https://your-app.vercel.app
+
+# Email (OTP)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-gmail-app-password
+FROM_EMAIL=noreply@grip.com
+FROM_NAME=Grip
+
+# Branding
+APP_NAME=Grip
+APP_TAGLINE=Money that minds itself.
 ```
 
-**Frontend (Vercel):**
+#### 3. Generate Domain
+
+- Go to Settings → Generate Domain
+- Copy the URL (e.g., `https://grip-backend.up.railway.app`)
+- Update `VITE_API_BASE_URL` in frontend
+
+---
+
+### Scheduled Tasks (GitHub Actions)
+
+**Why GitHub Actions?**
+- ✅ **Free unlimited** for public repos (2,000 min/month for private)
+- ✅ Saves $1-2/month on Railway (serverless vs always-on)
+- ✅ Reliable cron scheduling
+- ✅ Easy monitoring via Actions tab
+
+#### Setup Instructions
+
+1. **Add Database Secret** (One-time):
+   - Go to GitHub repo → Settings → Secrets → Actions
+   - Click "New repository secret"
+   - Name: `DATABASE_URL`
+   - Value: Your Supabase connection string
+   - Click "Add secret"
+
+2. **Workflow is already configured** (`.github/workflows/daily-price-sync.yml`)
+   - Runs daily at 3:30 PM IST (10:00 AM UTC)
+   - Syncs all investment holdings prices
+   - Updates Supabase database
+
+3. **Test the Workflow**:
+   - Go to Actions tab
+   - Click "Daily Price Sync"
+   - Click "Run workflow" → "Run workflow"
+   - Check logs to verify success
+
+4. **Set Railway to Serverless**:
+   - In Railway Environment Variables:
+   - `ENABLE_SCHEDULER=false` (disables internal scheduler)
+   - This saves ~$1-2/month in Railway credits
+
+**Monitoring:**
+- View logs in GitHub Actions tab
+- Check Railway logs for API requests
+- Verify data updates in Supabase dashboard
+
+---
+
+### Frontend Deployment (Vercel)
+
+#### 1. Deploy to Vercel
+
 ```bash
 cd Frontend
 npm run build
 vercel --prod
 ```
 
-**Environment Variables:**
-- Add all `.env` variables in platform dashboards
-- Update `GOOGLE_CLIENT_ID` redirect URIs with production URL
-- Ensure `DATABASE_URL` points to production database
-- Set `FRONTEND_ORIGIN` to production frontend URL
+Or connect via Vercel Dashboard:
+1. Go to [vercel.com](https://vercel.com)
+2. Import Git Repository
+3. Select your repo
+4. Framework Preset: Vite
+5. Root Directory: `Frontend`
+6. Deploy!
 
-### Docker (Alternative)
+#### 2. Environment Variables
+
+Add in Vercel Dashboard → Settings → Environment Variables:
 
 ```bash
-# Coming soon
-docker-compose up -d
+VITE_API_BASE_URL=https://grip-backend.up.railway.app/api/v1
+VITE_APP_NAME=Grip
+VITE_APP_TAGLINE=Money that minds itself.
 ```
+
+#### 3. Update Google OAuth
+
+- Go to [Google Cloud Console](https://console.cloud.google.com)
+- APIs & Services → Credentials
+- Edit OAuth 2.0 Client
+- Add Authorized JavaScript Origins:
+  - `https://your-app.vercel.app`
+- Add Authorized Redirect URIs:
+  - `https://your-app.vercel.app`
+- Save
+
+---
+
+### Database Setup (Supabase)
+
+1. **Create Project** at [supabase.com](https://supabase.com)
+2. **Get Connection String**:
+   - Project Settings → Database
+   - Copy "Transaction" pooler string (port 6543)
+3. **Add to Railway** as `DATABASE_URL`
+4. **Add to GitHub Secrets** for Actions workflow
+
+**Important:** Use port **6543** (Transaction pooler), not 5432, for Railway compatibility.
+
+---
+
+### Cost Breakdown
+
+| Service | Free Tier | Your Usage | Cost |
+|---------|-----------|------------|------|
+| **Railway** (Serverless) | $5/month credit | ~$1-2/month | $0 |
+| **Vercel** (Frontend) | Unlimited | Unlimited | $0 |
+| **Supabase** (Database) | 500MB | ~50MB | $0 |
+| **GitHub Actions** (Cron) | Unlimited (public) | 30 min/month | $0 |
+| **Groq** (AI) | Free tier | ~1000 requests/month | $0 |
+
+**Total: $0/month** 🎉
+
+---
+
+### Deployment Checklist
+
+- [ ] Railway backend deployed with all env vars
+- [ ] Vercel frontend deployed with API URL
+- [ ] Supabase database created and connected
+- [ ] GitHub Actions secret added (`DATABASE_URL`)
+- [ ] Google OAuth redirect URIs updated
+- [ ] Test login flow
+- [ ] Test Gmail sync
+- [ ] Test scheduled task (manual trigger)
+- [ ] Verify investment price sync working
+
+---
+
+### Monitoring & Maintenance
+
+**Daily Checks:**
+- GitHub Actions logs (scheduled task status)
+- Railway logs (API errors)
+- Supabase dashboard (data integrity)
+
+**Weekly:**
+- Check Railway usage (should be <$2)
+- Review Groq API usage
+- Test critical flows (login, sync, forecast)
+
+**Monthly:**
+- Review GitHub Actions minutes (should be ~30)
+- Check Railway credit balance
+- Update dependencies if needed
 
 ---
 
