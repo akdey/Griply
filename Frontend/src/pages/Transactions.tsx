@@ -165,7 +165,7 @@ const Transactions: React.FC = () => {
     if (isLoading && limit === 200) return <Loader fullPage text="Retrieving History" />;
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white pb-20">
+        <div className="min-h-screen text-white pb-20">
             {/* Header */}
             <header className="px-6 py-4 flex items-center justify-between sticky top-0 bg-[#050505]/80 backdrop-blur-3xl z-30 border-b border-white/[0.05]">
                 <div className="flex items-center gap-4">

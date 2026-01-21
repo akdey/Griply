@@ -69,7 +69,7 @@ const More: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white flex flex-col pb-20 overflow-x-hidden">
+        <div className="min-h-screen text-white flex flex-col pb-20 overflow-x-hidden">
             {/* Minimal Header */}
             <header className="px-4 py-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">

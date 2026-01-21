@@ -69,7 +69,7 @@ const Analytics: React.FC = () => {
     // Blocking loader removed for progressive loading
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white p-6 pb-24 overflow-x-hidden relative">
+        <div className="min-h-screen text-white p-6 pb-24 overflow-x-hidden relative">
             <header className="flex items-center justify-between mb-8 relative z-50">
                 <div>
                     <p className="text-[10px] font-black uppercase tracking-[3px] text-gray-500 mb-0.5 opacity-60">

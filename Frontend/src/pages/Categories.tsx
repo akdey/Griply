@@ -78,7 +78,7 @@ const Categories: React.FC = () => {
     if (isLoading) return <Loader fullPage text="Decrypting Entities" />;
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white flex flex-col pb-24 overflow-x-hidden">
+        <div className="min-h-screen text-white flex flex-col pb-24 overflow-x-hidden">
             {/* Full Screen Header */}
             <header className="px-6 py-4 flex items-center justify-between sticky top-0 bg-[#050505]/60 backdrop-blur-3xl z-30 border-b border-white/[0.05]">
                 <div className="flex items-center gap-4">

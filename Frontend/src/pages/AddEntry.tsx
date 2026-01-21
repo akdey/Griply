@@ -223,7 +223,7 @@ const AddEntry: React.FC = () => {
 
     return (
         <LayoutGroup id="add-entry">
-            <div className="min-h-screen bg-[#050505] text-white flex flex-col pb-24 overflow-x-hidden">
+            <div className="min-h-screen text-white flex flex-col pb-24 overflow-x-hidden">
                 <header className="px-5 py-3.5 flex items-center justify-between sticky top-0 bg-[#050505]/60 backdrop-blur-3xl z-30 border-b border-white/[0.05]">
                     <div className="flex items-center gap-4">
                         <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-gray-400 active:scale-90 transition-all">

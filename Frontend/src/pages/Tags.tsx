@@ -6,7 +6,7 @@ const Tags: React.FC = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white pb-24">
+        <div className="min-h-screen text-white pb-24">
             <header className="p-6 flex items-center justify-between sticky top-0 bg-[#050505]/80 backdrop-blur-xl z-20 border-b border-white/5">
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-400 hover:text-white transition-all active:scale-90">

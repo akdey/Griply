@@ -29,9 +29,11 @@ try:
             "server_settings": {
                 "application_name": "grip_backend"
             },
-            # Force SSL with no verification for interactions with cloud DBs to prevent hangs
-            "ssl": ssl_context 
         }
+        # Only enforce SSL if we are NOT in a local environment
+        # This prevents connection issues with local DBs or internal Render URLs that might stall on SSL
+        if settings.ENVIRONMENT != "local":
+            connect_args["ssl"] = ssl_context
 
     engine = create_async_engine(
         db_url, 

@@ -145,7 +145,7 @@ const Wealth: React.FC = () => {
         new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white p-6 pb-24 overflow-x-hidden">
+        <div className="min-h-screen text-white p-6 pb-24 overflow-x-hidden">
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
                 <div>

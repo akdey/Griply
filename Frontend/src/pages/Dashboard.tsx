@@ -71,7 +71,7 @@ const Dashboard: React.FC = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white p-6 pb-24 overflow-x-hidden relative">
+        <div className="min-h-screen text-white p-6 pb-24 overflow-x-hidden relative">
             {/* Header */}
             <header className="flex items-center justify-between mb-8 relative z-50">
                 <div className="flex flex-col">

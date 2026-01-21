@@ -67,7 +67,7 @@ const Goals: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white pb-24">
+        <div className="min-h-screen text-white pb-24">
             {/* Header */}
             <header className="px-4 py-6 flex items-center justify-between border-b border-white/[0.05]">
                 <div className="flex items-center gap-3">
@@ -129,8 +129,8 @@ const Goals: React.FC = () => {
                                         initial={{ opacity: 0, y: -10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         className={`p-4 rounded-xl border ${feasibility.is_feasible
-                                                ? 'bg-emerald-500/10 border-emerald-500/20'
-                                                : 'bg-amber-500/10 border-amber-500/20'
+                                            ? 'bg-emerald-500/10 border-emerald-500/20'
+                                            : 'bg-amber-500/10 border-amber-500/20'
                                             }`}
                                     >
                                         <div className="flex items-start gap-3">
