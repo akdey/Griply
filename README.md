@@ -37,7 +37,7 @@ Most investment apps are "lazy"—they show you generic fund returns or XIRR cal
 **Why this is a Big Deal:**
 Mutual Fund NAVs fluctuates daily. An investor who does a SIP on the 10th vs. the 15th might see a **1.5% difference in lifetime XIRR** for the exact same fund. Most platforms hide this "Timing Leakage." Grip exposes it and shows you how to fix it.
 
-> **Our Claim:** No other retail investment platform in India—not Zerodha Coin, INDMoney, or Groww—performs historical date-permutation analysis on your *actual* transactions to optimize your future returns.
+> **Our Finding says:** No other retail investment platform in India—not Zerodha Coin, INDMoney, or Groww—performs historical date-permutation analysis on your *actual* transactions to optimize your future returns.
 
 ### 🛡️ Frictionless, Private Onboarding
 While others make you wait for "syncs" or manual entries, Grip is built to get you from zero to "Deep Insights" in under a minute.

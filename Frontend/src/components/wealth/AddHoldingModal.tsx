@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save } from 'lucide-react';
+import { X, Save, Search } from 'lucide-react';
 import { api } from '../../lib/api';
 
 interface AddHoldingModalProps {
@@ -12,6 +12,11 @@ interface AddHoldingModalProps {
 export const AddHoldingModal: React.FC<AddHoldingModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [showExistingFields, setShowExistingFields] = useState(false);
+    const [schemes, setSchemes] = useState<{ schemeCode: string; schemeName: string }[]>([]);
+    const [isSchemesLoading, setIsSchemesLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showDropdown, setShowDropdown] = useState(false);
+
     const [formData, setFormData] = useState({
         name: '',
         asset_type: 'MUTUAL_FUND',
@@ -26,6 +31,27 @@ export const AddHoldingModal: React.FC<AddHoldingModalProps> = ({ isOpen, onClos
         interest_rate: '',
         maturity_date: ''
     });
+
+    useEffect(() => {
+        if (formData.api_source === 'MFAPI' && schemes.length === 0) {
+            setIsSchemesLoading(true);
+            fetch('https://api.mfapi.in/mf')
+                .then(res => res.json())
+                .then(data => setSchemes(data))
+                .catch(err => console.error("Failed to fetch MF schemes", err))
+                .finally(() => setIsSchemesLoading(false));
+        }
+    }, [formData.api_source]);
+
+    // Update search term if ticker symbol exists (e.g. editing)
+    useEffect(() => {
+        if (formData.ticker_symbol && !searchTerm && formData.api_source === 'MFAPI') {
+            // Try to find name if we have it, else keep blank or use ticker
+            // Actually, better to just let user search.
+        }
+    }, [formData.ticker_symbol]);
+
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -132,20 +158,78 @@ export const AddHoldingModal: React.FC<AddHoldingModalProps> = ({ isOpen, onClos
 
                             {formData.api_source !== 'MANUAL' && (
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-500 mb-1">Ticker / Scheme Code</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.ticker_symbol}
-                                        onChange={e => setFormData({ ...formData, ticker_symbol: e.target.value })}
-                                        placeholder={formData.api_source === 'MFAPI' ? "e.g. 120465" : "e.g. RELIANCE.NS"}
-                                        className="w-full bg-[#151515] border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500/50 transition-colors font-mono"
-                                    />
-                                    <p className="text-[10px] text-gray-600 mt-1">
-                                        {formData.api_source === 'MFAPI'
-                                            ? "Use Scheme Code from MFAPI.in"
-                                            : "Use Ticker Symbol (e.g., RELIANCE.NS for NSE)"}
-                                    </p>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                                        {formData.api_source === 'MFAPI' ? 'Search Mutual Fund Scheme' : 'Ticker / Scheme Code'}
+                                    </label>
+
+                                    {formData.api_source === 'MFAPI' ? (
+                                        <div className="relative">
+                                            <div className="relative">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                                                <input
+                                                    type="text"
+                                                    value={searchTerm}
+                                                    onChange={e => { setSearchTerm(e.target.value); setShowDropdown(true); }}
+                                                    onFocus={() => setShowDropdown(true)}
+                                                    placeholder="Search e.g. Axis Bluechip..."
+                                                    className="w-full bg-[#151515] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500/50 transition-colors"
+                                                />
+                                                {isSchemesLoading && (
+                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full"></div>
+                                                )}
+                                            </div>
+
+                                            {/* Dropdown */}
+                                            {showDropdown && searchTerm.length > 1 && (
+                                                <div className="absolute z-50 w-full mt-1 bg-[#151515] border border-white/10 rounded-xl max-h-60 overflow-y-auto shadow-2xl custom-scrollbar">
+                                                    {schemes
+                                                        .filter(s => s.schemeName.toLowerCase().includes(searchTerm.toLowerCase()))
+                                                        .slice(0, 50)
+                                                        .map(s => (
+                                                            <button
+                                                                key={s.schemeCode}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setFormData({
+                                                                        ...formData,
+                                                                        ticker_symbol: s.schemeCode,
+                                                                        name: s.schemeName // Auto-fill name
+                                                                    });
+                                                                    setSearchTerm(s.schemeName);
+                                                                    setShowDropdown(false);
+                                                                }}
+                                                                className="w-full text-left px-4 py-3 hover:bg-white/5 border-b border-white/5 last:border-0 text-xs transition-colors group"
+                                                            >
+                                                                <p className="font-bold text-gray-200 group-hover:text-emerald-400">{s.schemeName}</p>
+                                                                <p className="text-[10px] text-gray-500 mt-0.5">Code: {s.schemeCode}</p>
+                                                            </button>
+                                                        ))}
+                                                    {schemes.filter(s => s.schemeName.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                                                        <div className="p-4 text-center text-xs text-gray-500">No schemes found</div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {formData.ticker_symbol && (
+                                                <p className="text-[10px] text-emerald-500 mt-1 font-mono">
+                                                    ✓ Code: {formData.ticker_symbol}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={formData.ticker_symbol}
+                                                onChange={e => setFormData({ ...formData, ticker_symbol: e.target.value })}
+                                                placeholder="e.g. RELIANCE.NS"
+                                                className="w-full bg-[#151515] border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500/50 transition-colors font-mono"
+                                            />
+                                            <p className="text-[10px] text-gray-600 mt-1">
+                                                Use Ticker Symbol (e.g., RELIANCE.NS for NSE)
+                                            </p>
+                                        </>
+                                    )}
                                 </div>
                             )}
 

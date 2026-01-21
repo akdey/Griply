@@ -71,7 +71,7 @@ class InvestmentSnapshot(Base):
     is_step_up: Mapped[bool] = mapped_column(Boolean, default=False)
     is_skip: Mapped[bool] = mapped_column(Boolean, default=False)
     skip_reason: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    extra_data: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)  # Additional metadata (renamed from metadata to avoid SQLAlchemy conflict)
+    extra_data: Mapped[Optional[dict]] = mapped_column("metadata", JSON, nullable=True)  # Additional metadata (renamed from metadata to avoid SQLAlchemy conflict)
 
     holding: Mapped["InvestmentHolding"] = relationship("InvestmentHolding", back_populates="snapshots")
 

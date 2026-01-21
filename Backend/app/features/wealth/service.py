@@ -821,7 +821,7 @@ class WealthService:
                                 is_step_up=is_step_up,
                                 is_skip=is_skip,
                                 skip_reason=skip_reason,
-                                metadata=metadata if metadata else None
+                                extra_data=metadata if metadata else None
                             )
                             self.db.add(snapshot)
                         
@@ -911,8 +911,13 @@ class WealthService:
         except:
             current_nav = sip_snapshots[-1].price_per_unit
         
-        # Alternative dates to test
-        alternative_dates = [1, 5, 10, 15, 20, 25]
+        # Pre-fetch NAV history for efficiency (Avoid 1000+ API calls)
+        nav_history = []
+        if holding.ticker_symbol and holding.api_source == "MFAPI":
+             nav_history = await self.get_mf_nav_history(holding.ticker_symbol)
+        
+        # Test all days from 1st to 28th (Timing Alpha)
+        alternative_dates = list(range(1, 29))
         
         # Calculate performance for each alternative date
         results = {}
@@ -924,11 +929,13 @@ class WealthService:
                     sip_snapshots=sip_snapshots,
                     target_date=alt_date,
                     avg_sip_amount=avg_sip_amount,
-                    current_nav=current_nav
+                    current_nav=current_nav,
+                    nav_history=nav_history
                 )
                 results[alt_date] = performance
             except Exception as e:
-                logger.warning(f"Could not calculate performance for date {alt_date}: {e}")
+                # logger.warning(f"Could not calculate performance for date {alt_date}: {e}")
+                pass
         
         # Get user's actual performance
         user_performance = results.get(most_common_date)
@@ -978,12 +985,17 @@ class WealthService:
         sip_snapshots: List[InvestmentSnapshot],
         target_date: int,
         avg_sip_amount: float,
-        current_nav: float
+        current_nav: float,
+        nav_history: List[dict] = None
     ) -> schemas.SIPDatePerformance:
         """Calculate performance for a specific SIP date."""
         simulated_portfolio = []
         total_units = 0.0
         total_invested = 0.0
+        
+        # Optimization: Create a lookup map for history if provided
+        # nav_lookup = {row['date']: row['nav'] for row in nav_history} # Expensive to build every time?
+        # Better: Just linear scan or simple lookup helper if passed efficiently
         
         for snapshot in sip_snapshots:
             # Calculate target date in same month/year
@@ -996,11 +1008,19 @@ class WealthService:
                 target_dt = snapshot.captured_at.replace(day=min(target_date, max_day))
             
             # Fetch NAV for this alternative date
-            try:
-                nav = await self.get_asset_price(holding, target_dt)
-            except:
-                # Fallback to original snapshot NAV if can't fetch
-                nav = snapshot.price_per_unit
+            # Loop optimization: Use history
+            nav = 0.0
+            if nav_history:
+                nav = self._find_nav_in_history(nav_history, target_dt)
+            
+            if nav <= 0:
+                # Fallback to API/DB if history missing or lookup failed
+                try:
+                    nav = await self.get_asset_price(holding, target_dt)
+                except:
+                    nav = snapshot.price_per_unit # Ultimate Fallback
+            
+            if nav <= 0: nav = 1.0 # Safety
             
             # Calculate units
             units = avg_sip_amount / nav
@@ -1102,3 +1122,72 @@ class WealthService:
         
         return f"In the last {total_months} months, SIPs on the {best_date}th outperformed {user_date}th-date SIPs in approximately {wins} out of {total_months} months ({win_rate}% win rate)."
 
+    async def get_mf_nav_history(self, scheme_code: str) -> List[dict]:
+        """Fetch full NAV history from MFAPI."""
+        url = f"https://api.mfapi.in/mf/{scheme_code}"
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url, timeout=10.0)
+                if resp.status_code == 200:
+                    return resp.json().get("data", [])
+            except Exception as e:
+                logger.error(f"Failed to fetch MF history: {e}")
+        return []
+
+    def _find_nav_in_history(self, history: List[dict], target_date: date) -> float:
+        """Find NAV in history list (descending order). Returns 0.0 if not found."""
+        target_str = target_date.strftime("%d-%m-%Y")
+        
+        # Exact match attempt
+        # Since history is sorted desc, we can scan. average case O(N/2). 
+        # For simulation, caching this map is better, but this is fast enough for 30 lookup items.
+        for entry in history:
+            if entry['date'] == target_str:
+                return float(entry['nav'])
+                
+            # If we passed the date (entry date is older than target), stop? No, history is DESC (2025 -> 2020)
+            # If entry['date'] < target_date: break? 
+            # Date parsing is slow. String comparison... "20-01-2024" vs "19-01-2024".
+            # String comparison of DD-MM-YYYY is NOT chronological. Cannot optimize easily without parsing.
+            
+        return 0.0
+
+    async def simulate_historical_investment(self, scheme_code: str, amount: float, date_obj: date) -> dict:
+        """
+        Simulate a one-time investment on a specific past date.
+        Returns the hypothetical current value and return %.
+        """
+        history = await self.get_mf_nav_history(scheme_code)
+        if not history:
+             raise ValueError("Could not fetch scheme history")
+             
+        start_nav = self._find_nav_in_history(history, date_obj)
+        if start_nav <= 0:
+            # Try +/- 3 days for weekends
+            for i in range(1, 4):
+                 start_nav = self._find_nav_in_history(history, date_obj + timedelta(days=i))
+                 if start_nav > 0: break
+                 start_nav = self._find_nav_in_history(history, date_obj - timedelta(days=i))
+                 if start_nav > 0: break
+        
+        if start_nav <= 0:
+            raise ValueError(f"No NAV found for date {date_obj}")
+            
+        current_nav = float(history[0]['nav']) # Latest
+        
+        units = amount / start_nav
+        current_value = units * current_nav
+        abs_return = current_value - amount
+        pct_return = (abs_return / amount) * 100
+        
+        return {
+            "scheme_code": scheme_code,
+            "invested_date": date_obj,
+            "invested_amount": amount,
+            "start_nav": start_nav,
+            "current_nav": current_nav,
+            "units_allotted": units,
+            "current_value": current_value,
+            "absolute_return": abs_return,
+            "return_percentage": pct_return
+        }

@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import date, datetime
 from uuid import UUID
@@ -21,6 +21,13 @@ class InvestmentHoldingBase(BaseModel):
     name: str
     asset_type: AssetType
     ticker_symbol: Optional[str] = None
+    
+    @field_validator('ticker_symbol', mode='before')
+    @classmethod
+    def convert_to_string(cls, v):
+        if v is None:
+            return None
+        return str(v)
     api_source: Optional[str] = None
     interest_rate: Optional[float] = None
     maturity_date: Optional[date] = None
