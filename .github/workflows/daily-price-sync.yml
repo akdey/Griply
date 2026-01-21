@@ -1,0 +1,44 @@
+name: Daily Price Sync
+
+on:
+  schedule:
+    # Runs at 10:00 AM UTC (3:30 PM IST)
+    - cron: '0 10 * * *'
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+jobs:
+  sync-prices:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          cd Backend
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run daily price sync
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ENVIRONMENT: production
+        run: |
+          cd Backend
+          python -c "
+          import asyncio
+          from app.features.sync.service import run_daily_price_sync
+          
+          async def main():
+              print('Starting daily price sync...')
+              await run_daily_price_sync()
+              print('Price sync completed successfully!')
+          
+          asyncio.run(main())
+          "
