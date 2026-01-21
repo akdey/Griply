@@ -24,7 +24,7 @@ const Terms: React.FC = () => {
                     </div>
                     <div className="space-y-4 text-sm text-gray-400 leading-relaxed font-medium">
                         <p>
-                            Grip grants you a limited, non-exclusive, non-transferable license to access our proprietary financial intelligence dashboard. You agree to use the service only for lawful personal financial management purposes.
+                            {import.meta.env.VITE_APP_NAME || 'Grip'} grants you a limited, non-exclusive, non-transferable license to access our proprietary financial intelligence dashboard. You agree to use the service only for lawful personal financial management purposes.
                         </p>
                     </div>
                 </section>
@@ -36,7 +36,7 @@ const Terms: React.FC = () => {
                     </div>
                     <div className="space-y-4 text-sm text-gray-400 leading-relaxed font-medium">
                         <p>
-                            Grip is an analytics tool. All projections, "Safe to Spend" metrics, and risk assessments are provided "as-is" without warranty. We do not provide licensed financial, tax, or legal advice.
+                            {import.meta.env.VITE_APP_NAME || 'Grip'} is an analytics tool. All projections, "Safe to Spend" metrics, and risk assessments are provided "as-is" without warranty. We do not provide licensed financial, tax, or legal advice.
                         </p>
                         <p>
                             We are not liable for incidental or consequential damages resulting from algorithmic errors, data synchronization delays, or unauthorized account access resulting from weak credentials.
@@ -68,7 +68,7 @@ const Terms: React.FC = () => {
                             AMIT KUMAR DEY
                         </a>
                     </div>
-                    <p className="text-[9px] font-black text-gray-700 uppercase tracking-widest">Version 1.0.0 • © 2026 Grip Intelligence</p>
+                    <p className="text-[9px] font-black text-gray-700 uppercase tracking-widest">Version 1.0.0 • © 2026 {import.meta.env.VITE_APP_NAME || 'Grip'} Intelligence</p>
                 </footer>
             </div>
         </div>

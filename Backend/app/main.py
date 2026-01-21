@@ -97,4 +97,4 @@ app.include_router(export_router, prefix=f"{settings.API_V1_STR}/export", tags=[
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Grip - The financial diet that sticks."}
+    return {"message": f"Welcome to {settings.PROJECT_NAME} - The financial diet that sticks."}

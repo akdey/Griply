@@ -36,11 +36,10 @@ try:
     engine = create_async_engine(
         db_url, 
         echo=False,
-        # pool_pre_ping=True can cause timeouts if latency is high, trying False for robustness
-        pool_pre_ping=False, 
+        pool_pre_ping=True, # Re-enabling to ensure connections are valid
         pool_recycle=300, 
-        pool_size=3, # Reduced for free tier compatibility
-        max_overflow=5,
+        pool_size=5, # Increased to handle concurrency better
+        max_overflow=10, # Allow more temporary burst connections
         connect_args=connect_args
     )
 except Exception as e:

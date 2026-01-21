@@ -24,7 +24,7 @@ const Privacy: React.FC = () => {
                     </div>
                     <div className="space-y-4 text-sm text-gray-400 leading-relaxed font-medium">
                         <p>
-                            Grip operates on a foundation of absolute transparency and data sovereignty. We exclusively collect telemetry and financial data necessary to generate our proprietary intelligence models.
+                            {import.meta.env.VITE_APP_NAME || 'Grip'} operates on a foundation of absolute transparency and data sovereignty. We exclusively collect telemetry and financial data necessary to generate our proprietary intelligence models.
                         </p>
                         <p>
                             Personal Identifiable Information (PII) is isolated and never exposed to external marketing or advertising networks. Our monetization strategy is service-based, not data-based.
@@ -71,7 +71,7 @@ const Privacy: React.FC = () => {
                             AMIT KUMAR DEY
                         </a>
                     </div>
-                    <p className="text-[9px] font-black text-gray-700 uppercase tracking-widest">Version 1.0.0 • © 2026 Grip Intelligence</p>
+                    <p className="text-[9px] font-black text-gray-700 uppercase tracking-widest">Version 1.0.0 • © 2026 {import.meta.env.VITE_APP_NAME || 'Grip'} Intelligence</p>
                 </footer>
             </div>
         </div>
